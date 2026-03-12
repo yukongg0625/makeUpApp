@@ -1,0 +1,46 @@
+<view class="container">
+  <!-- 精选集标题 -->
+  <view class="featured-header">
+    <text class="header-title">精选作品集</text>
+    <text class="header-subtitle">精心挑选的优质作品</text>
+  </view>
+
+  <!-- 精选作品列表 -->
+  <view class="featured-list">
+    <view 
+      class="featured-item" 
+      wx:for="{{featuredWorks}}" 
+      wx:key="id"
+      bindtap="onWorkTap"
+      data-id="{{item.id}}"
+    >
+      <image class="featured-image" src="{{item.coverUrl}}" mode="aspectFill" lazy-load="{{true}}" />
+      <view class="featured-info">
+        <view class="featured-title-row">
+          <text class="featured-title">{{item.title}}</text>
+          <view class="featured-badge" wx:if="{{item.isFeatured}}">精选</view>
+        </view>
+        <text class="featured-subtitle" wx:if="{{item.subtitle}}">{{item.subtitle}}</text>
+        <view class="featured-meta">
+          <text class="meta-item" wx:if="{{item.categoryName}}">{{item.categoryName}}</text>
+          <text class="meta-divider" wx:if="{{item.categoryName && item.subcategoryName}}">·</text>
+          <text class="meta-item" wx:if="{{item.subcategoryName}}">{{item.subcategoryName}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加载更多 -->
+  <view class="load-more" wx:if="{{hasMore && !loading}}">
+    <text>加载更多精选作品</text>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading && featuredWorks.length === 0}}">加载中...</view>
+  
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{!loading && featuredWorks.length === 0}}">
+    <image src="/images/empty.png" mode="aspectFit" />
+    <text>暂无精选作品</text>
+  </view>
+</view>

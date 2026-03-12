@@ -1,0 +1,70 @@
+{
+  "indexes": [
+    {
+      "name": "work_category_idx",
+      "type": "index",
+      "direction": "asc",
+      "fields": [
+        {
+          "name": "categoryId",
+          "direction": "asc"
+        }
+      ]
+    },
+    {
+      "name": "work_subcategory_idx",
+      "type": "index",
+      "direction": "asc",
+      "fields": [
+        {
+          "name": "subcategoryId",
+          "direction": "asc"
+        }
+      ]
+    },
+    {
+      "name": "work_featured_idx",
+      "type": "index",
+      "direction": "asc",
+      "fields": [
+        {
+          "name": "isFeatured",
+          "direction": "asc"
+        }
+      ]
+    },
+    {
+      "name": "work_enabled_idx",
+      "type": "index",
+      "direction": "asc",
+      "fields": [
+        {
+          "name": "enabled",
+          "direction": "asc"
+        }
+      ]
+    },
+    {
+      "name": "work_order_idx",
+      "type": "index",
+      "direction": "asc",
+      "fields": [
+        {
+          "name": "order",
+          "direction": "asc"
+        }
+      ]
+    },
+    {
+      "name": "work_createTime_idx",
+      "type": "index",
+      "direction": "desc",
+      "fields": [
+        {
+          "name": "createTime",
+          "direction": "desc"
+        }
+      ]
+    }
+  ]
+}

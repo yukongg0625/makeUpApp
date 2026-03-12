@@ -1,0 +1,8 @@
+{
+  "description": "项目私有配置文件。",
+  "projectname": "makeup-app",
+  "setting": {
+    "compileHotReLoad": true
+  },
+  "libVersion": "3.14.3"
+}

@@ -1,0 +1,73 @@
+<view class="container">
+  <!-- 顶部标题 -->
+  <view class="header-section">
+    <text class="app-title">造型师作品集</text>
+  </view>
+
+  <!-- 圆形分类导航 -->
+  <view class="category-section">
+    <scroll-view class="category-scroll" scroll-x="{{true}}" show-scrollbar="{{false}}">
+      <view class="category-list">
+        <view 
+          class="category-item" 
+          wx:for="{{categories}}" 
+          wx:key="id"
+          bindtap="onCategoryTap"
+          data-id="{{item.id}}"
+          data-name="{{item.name}}"
+        >
+          <view class="avatar-wrapper">
+            <image class="category-avatar" src="{{item.icon}}" mode="aspectFill" />
+          </view>
+          <text class="category-text">{{item.name}}</text>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 风格合集标题 -->
+  <view class="style-collection-header" bindtap="onViewAllStyles">
+    <view class="header-left">
+      <view class="title-bar"></view>
+      <text class="collection-title">风格合集</text>
+    </view>
+    <text class="arrow-right">›</text>
+  </view>
+
+  <!-- 作品网格 -->
+  <view class="works-grid">
+    <view 
+      class="work-card" 
+      wx:for="{{styleWorks}}" 
+      wx:key="id"
+      bindtap="onWorkTap"
+      data-id="{{item.id}}"
+    >
+      <image class="work-image" src="{{item.coverUrl}}" mode="aspectFill" lazy-load="{{true}}" />
+      <view class="work-overlay">
+        <view class="work-title-row">
+          <text class="work-title">{{item.title}}</text>
+        </view>
+        <view class="work-subtitle" wx:if="{{item.subtitle}}">{{item.subtitle}}</view>
+      </view>
+      
+      <!-- 关注按钮 -->
+      <view class="follow-btn" bindtap="onFollow" data-id="{{item.id}}" catchtap="true">
+        <text class="heart-icon">♡</text>
+        <text class="follow-text">关注</text>
+      </view>
+      
+      <!-- 预约按钮 -->
+      <view class="quick-book-btn" bindtap="onQuickBook" data-id="{{item.id}}" catchtap="true">
+        <text class="book-icon">●</text>
+        <text class="book-text">预约</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">加载中...</view>
+  <view class="empty-state" wx:if="{{!loading && styleWorks.length === 0}}">
+    <text>暂无作品</text>
+  </view>
+</view>

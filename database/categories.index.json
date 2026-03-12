@@ -1,0 +1,26 @@
+{
+  "indexes": [
+    {
+      "name": "category_order_idx",
+      "type": "index",
+      "direction": "asc",
+      "fields": [
+        {
+          "name": "order",
+          "direction": "asc"
+        }
+      ]
+    },
+    {
+      "name": "category_enabled_idx",
+      "type": "index",
+      "direction": "asc",
+      "fields": [
+        {
+          "name": "enabled",
+          "direction": "asc"
+        }
+      ]
+    }
+  ]
+}

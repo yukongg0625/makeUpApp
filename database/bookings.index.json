@@ -1,0 +1,26 @@
+{
+  "indexes": [
+    {
+      "name": "booking_status_idx",
+      "type": "index",
+      "direction": "asc",
+      "fields": [
+        {
+          "name": "status",
+          "direction": "asc"
+        }
+      ]
+    },
+    {
+      "name": "booking_createTime_idx",
+      "type": "index",
+      "direction": "desc",
+      "fields": [
+        {
+          "name": "createTime",
+          "direction": "desc"
+        }
+      ]
+    }
+  ]
+}

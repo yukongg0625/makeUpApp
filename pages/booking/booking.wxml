@@ -1,0 +1,110 @@
+<view class="container">
+  <view class="form-section">
+    <view class="section-title">预约信息</view>
+    
+    <!-- 选择的作品 -->
+    <view class="form-item" wx:if="{{selectedWork}}">
+      <text class="form-label">预约作品</text>
+      <view class="selected-work">
+        <image class="work-thumb" src="{{selectedWork.coverUrl}}" mode="aspectFill" />
+        <text class="work-title">{{selectedWork.title}}</text>
+      </view>
+    </view>
+
+    <!-- 姓名 -->
+    <view class="form-item">
+      <text class="form-label required">您的姓名</text>
+      <input 
+        class="form-input" 
+        placeholder="请输入您的姓名" 
+        value="{{formData.name}}"
+        bindinput="onInput"
+        data-field="name"
+      />
+    </view>
+
+    <!-- 手机号 -->
+    <view class="form-item">
+      <text class="form-label required">联系电话</text>
+      <input 
+        class="form-input" 
+        type="number" 
+        placeholder="请输入您的手机号" 
+        value="{{formData.phone}}"
+        bindinput="onInput"
+        data-field="phone"
+        maxlength="11"
+      />
+    </view>
+
+    <!-- 预约日期 -->
+    <view class="form-item">
+      <text class="form-label required">预约日期</text>
+      <picker 
+        mode="date" 
+        value="{{formData.date}}" 
+        start="{{minDate}}"
+        bindchange="onDateChange"
+      >
+        <view class="picker-display">
+          <text>{{formData.date || '请选择日期'}}</text>
+          <text class="picker-arrow">›</text>
+        </view>
+      </picker>
+    </view>
+
+    <!-- 预约时间 -->
+    <view class="form-item">
+      <text class="form-label required">预约时间</text>
+      <picker 
+        mode="time" 
+        value="{{formData.time}}" 
+        start="09:00" 
+        end="20:00"
+        bindchange="onTimeChange"
+      >
+        <view class="picker-display">
+          <text>{{formData.time || '请选择时间'}}</text>
+          <text class="picker-arrow">›</text>
+        </view>
+      </picker>
+    </view>
+
+    <!-- 服务类型 -->
+    <view class="form-item">
+      <text class="form-label">服务类型</text>
+      <view class="service-options">
+        <view 
+          class="service-option {{formData.serviceType === item.id ? 'active' : ''}}"
+          wx:for="{{serviceTypes}}"
+          wx:key="id"
+          bindtap="onServiceTypeSelect"
+          data-id="{{item.id}}"
+          data-name="{{item.name}}"
+        >
+          {{item.name}}
+        </view>
+      </view>
+    </view>
+
+    <!-- 备注 -->
+    <view class="form-item">
+      <text class="form-label">备注说明</text>
+      <textarea 
+        class="form-textarea" 
+        placeholder="请填写您的特殊需求或备注" 
+        value="{{formData.remark}}"
+        bindinput="onInput"
+        data-field="remark"
+        maxlength="200"
+      />
+    </view>
+  </view>
+
+  <!-- 提交按钮 -->
+  <view class="submit-section">
+    <button class="submit-btn" bindtap="onSubmit" disabled="{{!canSubmit}}">
+      提交预约
+    </button>
+  </view>
+</view>

@@ -1,0 +1,74 @@
+<view class="container">
+  <!-- 图片轮播 -->
+  <view class="image-section">
+    <swiper 
+      class="image-swiper" 
+      indicator-dots="{{images.length > 1}}"
+      autoplay="{{false}}"
+      current="{{currentImageIndex}}"
+      bindchange="onImageChange"
+    >
+      <swiper-item wx:for="{{images}}" wx:key="*this">
+        <image 
+          class="detail-image" 
+          src="{{item}}" 
+          mode="widthFix" 
+          lazy-load="{{true}}"
+          bindtap="onPreviewImage"
+          data-index="{{index}}"
+        />
+      </swiper-item>
+    </swiper>
+    
+    <!-- 图片计数 -->
+    <view class="image-counter" wx:if="{{images.length > 1}}">
+      {{currentImageIndex + 1}} / {{images.length}}
+    </view>
+  </view>
+
+  <!-- 作品信息 -->
+  <view class="info-section">
+    <view class="title-row">
+      <text class="work-title">{{workInfo.title}}</text>
+      <view class="share-btn" bindtap="onShare">
+        <text class="share-icon">📤</text>
+        <text>分享</text>
+      </view>
+    </view>
+
+    <view class="meta-row">
+      <view class="tag-item" wx:if="{{workInfo.categoryName}}">
+        <text class="tag-icon">🎨</text>
+        <text>{{workInfo.categoryName}}</text>
+      </view>
+      <view class="tag-item" wx:if="{{workInfo.subcategoryName}}">
+        <text class="tag-icon">✨</text>
+        <text>{{workInfo.subcategoryName}}</text>
+      </view>
+    </view>
+
+    <view class="description" wx:if="{{workInfo.description}}">
+      <text class="desc-label">作品说明：</text>
+      <text class="desc-content">{{workInfo.description}}</text>
+    </view>
+
+    <view class="detail-list" wx:if="{{workInfo.details && workInfo.details.length > 0}}">
+      <view class="detail-item" wx:for="{{workInfo.details}}" wx:key="*this">
+        <text class="detail-dot">•</text>
+        <text class="detail-text">{{item}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 预约按钮 -->
+  <view class="action-section">
+    <view class="contact-btn" bindtap="onContact">
+      <text class="btn-icon">💬</text>
+      <text>联系客服</text>
+    </view>
+    <view class="booking-btn" bindtap="onBookNow">
+      <text>立即预约</text>
+      <text class="btn-arrow">→</text>
+    </view>
+  </view>
+</view>

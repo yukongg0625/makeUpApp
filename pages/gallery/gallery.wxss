@@ -1,0 +1,159 @@
+/* pages/gallery/gallery.wxss */
+.container {
+  min-height: 100vh;
+  background-color: #f8f8f8;
+  padding-bottom: 20rpx;
+}
+
+/* 筛选栏 */
+.filter-bar {
+  display: flex;
+  background-color: #fff;
+  padding: 20rpx;
+  margin-bottom: 2rpx;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.filter-item {
+  padding: 12rpx 30rpx;
+  margin-right: 20rpx;
+  background-color: #f5f5f5;
+  border-radius: 30rpx;
+  font-size: 26rpx;
+  color: #666;
+  transition: all 0.3s ease;
+}
+
+.filter-item.active {
+  background: linear-gradient(135deg, #d4a574 0%, #c4956a 100%);
+  color: #fff;
+}
+
+/* 子分类筛选栏 */
+.subcategory-bar {
+  display: flex;
+  background-color: #fff;
+  padding: 15rpx 20rpx;
+  margin-bottom: 2rpx;
+  overflow-x: auto;
+  white-space: nowrap;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.subcategory-item {
+  padding: 10rpx 25rpx;
+  margin-right: 15rpx;
+  background-color: #f9f9f9;
+  border-radius: 25rpx;
+  font-size: 24rpx;
+  color: #666;
+  border: 1rpx solid #e0e0e0;
+}
+
+.subcategory-item.active {
+  background-color: #d4a574;
+  color: #fff;
+  border-color: #d4a574;
+}
+
+/* 作品网格 */
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15rpx;
+  padding: 15rpx;
+}
+
+.gallery-item {
+  position: relative;
+  background-color: #fff;
+  border-radius: 12rpx;
+  overflow: hidden;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease;
+}
+
+.gallery-item:active {
+  transform: scale(0.98);
+}
+
+.gallery-image {
+  width: 100%;
+  height: 450rpx;
+  background-color: #f5f5f5;
+}
+
+.gallery-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 60rpx 20rpx 20rpx;
+  background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 100%);
+  color: #fff;
+}
+
+.gallery-title {
+  font-size: 28rpx;
+  font-weight: 500;
+  margin-bottom: 8rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gallery-type {
+  font-size: 22rpx;
+  opacity: 0.9;
+}
+
+/* 加载更多 */
+.load-more {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40rpx;
+  color: #d4a574;
+  font-size: 28rpx;
+}
+
+/* 加载状态 */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 100rpx;
+  color: #999;
+  font-size: 28rpx;
+}
+
+.loading-more {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 30rpx;
+  color: #999;
+  font-size: 26rpx;
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 150rpx 40rpx;
+  color: #999;
+}
+
+.empty-state image {
+  width: 200rpx;
+  height: 200rpx;
+  margin-bottom: 30rpx;
+  opacity: 0.5;
+}
+
+.empty-state text {
+  font-size: 28rpx;
+}

@@ -1,0 +1,71 @@
+<view class="container">
+  <!-- 筛选栏 -->
+  <view class="filter-bar">
+    <view class="filter-item {{!currentCategory ? 'active' : ''}}" bindtap="onCategoryFilter" data-id="">
+      全部风格
+    </view>
+    <view 
+      class="filter-item {{currentCategory === item.id ? 'active' : ''}}" 
+      wx:for="{{categories}}" 
+      wx:key="id"
+      bindtap="onCategoryFilter"
+      data-id="{{item.id}}"
+      data-name="{{item.name}}"
+    >
+      {{item.name}}
+    </view>
+  </view>
+
+  <!-- 子分类筛选 -->
+  <view class="subcategory-bar" wx:if="{{currentCategory}}">
+    <view class="subcategory-item {{!currentSubcategory ? 'active' : ''}}" bindtap="onSubcategoryFilter" data-id="">
+      全部类型
+    </view>
+    <view 
+      class="subcategory-item {{currentSubcategory === item.id ? 'active' : ''}}"
+      wx:for="{{subcategories}}"
+      wx:key="id"
+      bindtap="onSubcategoryFilter"
+      data-id="{{item.id}}"
+      data-name="{{item.name}}"
+    >
+      {{item.name}}
+    </view>
+  </view>
+
+  <!-- 作品网格 -->
+  <view class="gallery-grid">
+    <view 
+      class="gallery-item" 
+      wx:for="{{works}}" 
+      wx:key="id"
+      bindtap="onWorkTap"
+      data-id="{{item.id}}"
+    >
+      <image class="gallery-image" src="{{item.coverUrl}}" mode="aspectFill" lazy-load="{{true}}" />
+      <view class="gallery-overlay">
+        <view class="gallery-title">{{item.title}}</view>
+        <view class="gallery-type">{{item.subcategoryName}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加载更多 -->
+  <view class="load-more" wx:if="{{hasMore && !loading}}">
+    <text>加载更多</text>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading && works.length === 0}}">加载中...</view>
+  
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{!loading && works.length === 0}}">
+    <image src="/images/empty.png" mode="aspectFit" />
+    <text>暂无作品</text>
+  </view>
+
+  <!-- 上拉加载更多 -->
+  <view class="loading-more" wx:if="{{loadingMore}}">
+    <text>加载中...</text>
+  </view>
+</view>
