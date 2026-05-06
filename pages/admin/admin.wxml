@@ -1,0 +1,46 @@
+<!--pages/admin/admin.wxml-->
+<view class="container">
+  <!-- 顶部标题 -->
+  <view class="header">
+    <text class="title">后台管理</text>
+  </view>
+
+  <!-- 管理菜单 -->
+  <view class="menu-list">
+    <view class="menu-item" bindtap="onMenuTap" data-type="categories">
+      <view class="menu-icon">📁</view>
+      <view class="menu-content">
+        <text class="menu-title">影集管理</text>
+        <text class="menu-desc">管理影集名称和封面图片</text>
+      </view>
+      <text class="arrow">›</text>
+    </view>
+
+    <view class="menu-item" bindtap="onMenuTap" data-type="subcategories">
+      <view class="menu-icon">📂</view>
+      <view class="menu-content">
+        <text class="menu-title">子类管理</text>
+        <text class="menu-desc">管理影集下的子类</text>
+      </view>
+      <text class="arrow">›</text>
+    </view>
+
+    <view class="menu-item" bindtap="onMenuTap" data-type="works">
+      <view class="menu-icon">🖼️</view>
+      <view class="menu-content">
+        <text class="menu-title">作品管理</text>
+        <text class="menu-desc">管理作品图片和信息</text>
+      </view>
+      <text class="arrow">›</text>
+    </view>
+
+    <view class="menu-item" bindtap="onMenuTap" data-type="featured">
+      <view class="menu-icon">⭐</view>
+      <view class="menu-content">
+        <text class="menu-title">精华相册管理</text>
+        <text class="menu-desc">管理精选作品</text>
+      </view>
+      <text class="arrow">›</text>
+    </view>
+  </view>
+</view>

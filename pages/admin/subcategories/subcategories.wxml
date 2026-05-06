@@ -1,0 +1,78 @@
+<!--pages/admin/subcategories/subcategories.wxml-->
+<view class="container">
+  <!-- 顶部操作栏 -->
+  <view class="header">
+    <text class="title">子类管理</text>
+    <view class="add-btn" bindtap="onAddSubcategory">
+      <text>+ 添加子类</text>
+    </view>
+  </view>
+
+  <!-- 影集筛选 -->
+  <view class="filter">
+    <picker mode="selector" range="{{categoryNames}}" value="{{selectedCategoryIndex}}" bindchange="onCategoryChange">
+      <view class="picker">
+        <text>{{selectedCategoryName || '选择影集'}}</text>
+        <text class="arrow">▼</text>
+      </view>
+    </picker>
+  </view>
+
+  <!-- 子类列表 -->
+  <view class="list">
+    <view class="list-item" wx:for="{{subcategories}}" wx:key="_id">
+      <view class="item-info">
+        <text class="item-name">{{item.name}}</text>
+        <text class="item-category">所属影集：{{item.categoryName}}</text>
+        <text class="item-order">排序：{{item.order}}</text>
+      </view>
+      <view class="item-actions">
+        <view class="action-btn edit" bindtap="onEditSubcategory" data-id="{{item._id}}">编辑</view>
+        <view class="action-btn delete" bindtap="onDeleteSubcategory" data-id="{{item._id}}">删除</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty" wx:if="{{subcategories.length === 0}}">
+    <text>暂无子类，请点击右上角添加</text>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+</view>
+
+<!-- 编辑弹窗 -->
+<view class="modal" wx:if="{{showModal}}">
+  <view class="modal-content">
+    <view class="modal-header">
+      <text class="modal-title">{{editMode ? '编辑子类' : '添加子类'}}</text>
+      <text class="modal-close" bindtap="onCloseModal">×</text>
+    </view>
+    <view class="modal-body">
+      <view class="form-item">
+        <text class="form-label">所属影集</text>
+        <picker mode="selector" range="{{categoryNames}}" value="{{formData.categoryIndex}}" bindchange="onCategoryPickerChange">
+          <view class="picker-input">
+            <text>{{formData.categoryName || '选择影集'}}</text>
+            <text class="arrow">▼</text>
+          </view>
+        </picker>
+      </view>
+      <view class="form-item">
+        <text class="form-label">子类名称</text>
+        <input class="form-input" value="{{formData.name}}" bindinput="onNameInput" placeholder="请输入子类名称" />
+      </view>
+      <view class="form-item">
+        <text class="form-label">排序</text>
+        <input class="form-input" type="number" value="{{formData.order}}" bindinput="onOrderInput" placeholder="请输入排序号" />
+      </view>
+    </view>
+    <view class="modal-footer">
+      <view class="modal-btn cancel" bindtap="onCloseModal">取消</view>
+      <view class="modal-btn confirm" bindtap="onSaveSubcategory">保存</view>
+    </view>
+  </view>
+</view>

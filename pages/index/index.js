@@ -2,88 +2,143 @@ const app = getApp()
 
 Page({
   data: {
-    categories: [],
-    styleWorks: [],
+    features: [],
+    featuredWorks: [],
     loading: false
   },
 
   onLoad: function () {
-    this.loadCategories()
-    this.loadStyleWorks()
+    this.loadFeatures()
+    this.loadFeaturedWorks()
   },
 
-  loadCategories() {
-    const categories = app.globalData.categories || []
-    this.setData({ categories })
-  },
-
-  loadStyleWorks() {
+  loadFeatures() {
     this.setData({ loading: true })
     
-    // 模拟数据，用于临时展示
-    const mockWorks = [
-      {
-        _id: 'work1',
-        title: '汉服 | 与诺',
-        subtitle: '整体造型',
-        coverUrl: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=traditional%20chinese%20hanfu%20dress%20elegant%20portrait%20makeup%20styling&image_size=landscape_4_3',
-        categoryId: 1,
-        isFeatured: true
-      },
-      {
-        _id: 'work2',
-        title: '旗袍 | 雅韵',
-        subtitle: '服装租赁',
-        coverUrl: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=chinese%20qipao%20dress%20traditional%20elegant%20makeup%20styling&image_size=landscape_4_3',
-        categoryId: 2,
-        isFeatured: true
-      },
-      {
-        _id: 'work3',
-        title: '礼服 | 星辰',
-        subtitle: '整体造型',
-        coverUrl: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=elegant%20evening%20gown%20formal%20dress%20makeup%20styling&image_size=landscape_4_3',
-        categoryId: 3,
-        isFeatured: true
-      },
-      {
-        _id: 'work4',
-        title: '沙丽 | 流光',
-        subtitle: '化妆造型',
-        coverUrl: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=indian%20sari%20traditional%20dress%20colorful%20makeup%20styling&image_size=landscape_4_3',
-        categoryId: 4,
-        isFeatured: false
-      },
-      {
-        _id: 'work5',
-        title: '和服 | 花见',
-        subtitle: '服装租赁',
-        coverUrl: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=japanese%20kimono%20traditional%20dress%20makeup%20styling&image_size=landscape_4_3',
-        categoryId: 5,
-        isFeatured: false
-      },
-      {
-        _id: 'work6',
-        title: '汉服 | 清韵',
-        subtitle: '整体造型',
-        coverUrl: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=traditional%20chinese%20hanfu%20dress%20elegant%20portrait%20makeup%20styling&image_size=landscape_4_3',
-        categoryId: 1,
-        isFeatured: false
-      }
-    ]
+    const db = wx.cloud.database()
+    db.collection('categories')
+      .where({ enabled: true })
+      .orderBy('order', 'asc')
+      .get()
+      .then(res => {
+        if (res.data && res.data.length > 0) {
+          // 转换云存储 File ID 为临时 URL
+          this.convertCloudStorageUrls(res.data, 'coverImage')
+            .then(features => {
+              this.setData({
+                features: features,
+                loading: false
+              })
+            })
+            .catch(err => {
+              console.error('转换图片 URL 失败:', err)
+              this.setData({
+                features: res.data,
+                loading: false
+              })
+            })
+        } else {
+          console.warn('categories 集合为空，使用降级数据')
+          this.setData({
+            features: this.getFallbackFeatures(),
+            loading: false
+          })
+        }
+      })
+      .catch(err => {
+        console.error('加载影集失败:', err)
+        console.warn('使用降级数据')
+        this.setData({
+          features: this.getFallbackFeatures(),
+          loading: false
+        })
+      })
+  },
+
+  // 转换云存储 File ID 为临时 URL
+  convertCloudStorageUrls(data, fieldName) {
+    console.log('开始转换云存储 URL, 字段:', fieldName)
+    console.log('原始数据:', data)
     
-    this.setData({
-      styleWorks: mockWorks,
-      loading: false
+    const fileIds = data
+      .filter(item => item[fieldName] && item[fieldName].startsWith('cloud://'))
+      .map(item => item[fieldName])
+    
+    console.log('需要转换的 File IDs:', fileIds)
+    
+    if (fileIds.length === 0) {
+      console.log('没有需要转换的 File ID')
+      return Promise.resolve(data)
+    }
+    
+    return wx.cloud.getTempFileURL({
+      fileList: fileIds
+    }).then(res => {
+      console.log('getTempFileURL 返回结果:', res)
+      
+      const urlMap = {}
+      res.fileList.forEach(file => {
+        console.log('File ID:', file.fileID, '-> Temp URL:', file.tempFileURL)
+        urlMap[file.fileID] = file.tempFileURL
+      })
+      
+      const result = data.map(item => {
+        if (item[fieldName] && item[fieldName].startsWith('cloud://')) {
+          const newUrl = urlMap[item[fieldName]] || item[fieldName]
+          console.log('替换 URL:', item[fieldName], '->', newUrl)
+          return {
+            ...item,
+            [fieldName]: newUrl
+          }
+        }
+        return item
+      })
+      
+      console.log('转换后的数据:', result)
+      return result
+    }).catch(err => {
+      console.error('getTempFileURL 失败:', err)
+      throw err
     })
   },
 
-  onCategoryTap(e) {
-    const categoryId = e.currentTarget.dataset.id
-    const categoryName = e.currentTarget.dataset.name
+  getFallbackFeatures() {
+    return [
+      { _id: '1', name: '化妆造型', coverImage: '', order: 1, enabled: true },
+      { _id: '2', name: '整体造型', coverImage: '', order: 2, enabled: true },
+      { _id: '3', name: '服装租赁', coverImage: '', order: 3, enabled: true },
+      { _id: '4', name: '饰品租赁', coverImage: '', order: 4, enabled: true },
+      { _id: '5', name: '美妆私教', coverImage: '', order: 5, enabled: true }
+    ]
+  },
+
+  loadFeaturedWorks() {
+    this.setData({ loading: true })
+    
+    const db = wx.cloud.database()
+    db.collection('works')
+      .where({ isFeatured: true, enabled: true })
+      .orderBy('order', 'asc')
+      .limit(10)
+      .get()
+      .then(res => {
+        this.setData({
+          featuredWorks: res.data,
+          loading: false
+        })
+      })
+      .catch(err => {
+        console.error('加载精华相册失败:', err)
+        this.setData({ loading: false })
+      })
+  },
+
+  onFeatureTap(e) {
+    const featureId = e.currentTarget.dataset.id
+    const featureName = e.currentTarget.dataset.name
     
     wx.navigateTo({
-      url: `/pages/gallery/gallery?category=${categoryId}`
+      url: `/pages/feature/feature?id=${featureId}&name=${encodeURIComponent(featureName)}`
     })
   },
 
@@ -94,43 +149,15 @@ Page({
     })
   },
 
-  onViewAllStyles() {
+  onViewFeatured() {
     wx.navigateTo({
-      url: '/pages/gallery/gallery'
+      url: '/pages/featured/featured'
     })
-  },
-
-  onFollow(e) {
-    const workId = e.currentTarget.dataset.id
-    wx.showToast({
-      title: '已关注',
-      icon: 'success'
-    })
-  },
-
-  onQuickBook(e) {
-    const workId = e.currentTarget.dataset.id
-    
-    wx.cloud.database()
-      .collection('works')
-      .doc(workId)
-      .get()
-      .then(res => {
-        const work = res.data
-        wx.navigateTo({
-          url: `/pages/booking/booking?workId=${workId}&workTitle=${encodeURIComponent(work.title)}`
-        })
-      })
-      .catch(err => {
-        console.error('获取作品信息失败:', err)
-        wx.navigateTo({
-          url: `/pages/booking/booking?workId=${workId}`
-        })
-      })
   },
 
   onPullDownRefresh() {
-    this.loadStyleWorks()
+    this.loadFeatures()
+    this.loadFeaturedWorks()
     setTimeout(() => {
       wx.stopPullDownRefresh()
     }, 500)

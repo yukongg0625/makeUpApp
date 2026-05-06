@@ -1,5 +1,7 @@
 {
-  "usingComponents": {},
+  "usingComponents": {
+    "tab-bar": "/components/tab-bar/tab-bar"
+  },
   "navigationBarTitleText": "作品详情",
   "enablePullDownRefresh": false
 }

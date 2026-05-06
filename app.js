@@ -1,29 +1,67 @@
 App({
   onLaunch: function () {
+    console.log('=== 小程序启动 ===')
+    
     if (!wx.cloud) {
       console.error('请使用 2.2.3 或以上的基础库以使用云能力')
+      this.globalData.cloudReady = false
     } else {
-      wx.cloud.init({
-        env: 'makeup-app-env',
-        traceUser: true,
-      })
+      try {
+        wx.cloud.init({
+          env: 'cloud1-d6gmlx4ss77f8e361',
+          traceUser: true,
+        })
+        console.log('云开发初始化成功')
+        this.globalData.cloudReady = true
+      } catch (err) {
+        console.error('云开发初始化失败:', err)
+        this.globalData.cloudReady = false
+      }
     }
 
-    this.globalData = {}
+    this.globalData = {
+      cloudReady: false,
+      // 管理员 OpenID 列表（添加你的 OpenID）
+      adminOpenIds: [
+        // '你的OpenID',
+        'oVa-r7fs5JMPsNfOGrGniUUTCB0M',
+      ],
+      // 当前用户 OpenID
+      currentOpenId: null,
+      // 是否为管理员
+      isAdmin: false
+    }
+    
+    // 获取当前用户 OpenID
+    this.getCurrentUserOpenId()
+  },
+
+  // 获取当前用户 OpenID
+  getCurrentUserOpenId: function() {
+    wx.cloud.callFunction({
+      name: 'login'
+    }).then(res => {
+      const openId = res.result.openid
+      this.globalData.currentOpenId = openId
+      this.globalData.isAdmin = this.globalData.adminOpenIds.includes(openId)
+      console.log('当前用户 OpenID:', openId)
+      console.log('是否为管理员:', this.globalData.isAdmin)
+    }).catch(err => {
+      console.error('获取 OpenID 失败:', err)
+    })
   },
 
   globalData: {
-    categories: [
-      { id: 1, name: '汉服', icon: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=traditional%20chinese%20hanfu%20dress%20elegant%20portrait&image_size=square' },
-      { id: 2, name: '旗袍', icon: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=chinese%20qipao%20dress%20traditional%20elegant&image_size=square' },
-      { id: 3, name: '礼服', icon: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=elegant%20evening%20gown%20formal%20dress&image_size=square' },
-      { id: 4, name: '沙丽', icon: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=indian%20sari%20traditional%20dress%20colorful&image_size=square' },
-      { id: 5, name: '和服', icon: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=japanese%20kimono%20traditional%20dress&image_size=square' }
+    categories: [],
+    subcategories: {},
+    // 管理员 OpenID 列表（添加你的 OpenID）
+    adminOpenIds: [
+      // '你的OpenID',
+      'oVa-r7fs5JMPsNfOGrGniUUTCB0M',
     ],
-    subcategories: [
-      { id: 1, name: '服装租赁' },
-      { id: 2, name: '整体造型' },
-      { id: 3, name: '化妆造型' }
-    ]
+    // 当前用户 OpenID
+    currentOpenId: null,
+    // 是否为管理员
+    isAdmin: false
   }
 })

@@ -1,0 +1,26 @@
+<view class="tab-bar">
+  <view 
+    class="tab-item {{currentTab === 0 ? 'active' : ''}}" 
+    bindtap="onTabTap" 
+    data-index="0"
+  >
+    <image class="tab-icon" src="{{currentTab === 0 ? selectedIconPaths[0] : iconPaths[0]}}" mode="aspectFit"></image>
+    <text class="tab-text {{currentTab === 0 ? 'active' : ''}}">主页</text>
+  </view>
+  <view 
+    class="tab-item {{currentTab === 1 ? 'active' : ''}}" 
+    bindtap="onTabTap" 
+    data-index="1"
+  >
+    <image class="tab-icon" src="{{currentTab === 1 ? selectedIconPaths[1] : iconPaths[1]}}" mode="aspectFit"></image>
+    <text class="tab-text {{currentTab === 1 ? 'active' : ''}}">创意展示</text>
+  </view>
+  <view 
+    class="tab-item {{currentTab === 2 ? 'active' : ''}}" 
+    bindtap="onTabTap" 
+    data-index="2"
+  >
+    <image class="tab-icon" src="{{currentTab === 2 ? selectedIconPaths[2] : iconPaths[2]}}" mode="aspectFit"></image>
+    <text class="tab-text {{currentTab === 2 ? 'active' : ''}}">联系我们</text>
+  </view>
+</view>

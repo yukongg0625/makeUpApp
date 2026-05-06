@@ -1,0 +1,137 @@
+<!--pages/admin/works/works.wxml-->
+<view class="container">
+  <!-- 顶部操作栏 -->
+  <view class="header">
+    <text class="title">作品管理</text>
+    <view class="add-btn" bindtap="onAddWork">
+      <text>+ 添加作品</text>
+    </view>
+  </view>
+
+  <!-- 筛选器 -->
+  <view class="filters">
+    <picker mode="selector" range="{{categoryNames}}" value="{{selectedCategoryIndex}}" bindchange="onCategoryChange">
+      <view class="filter-item">
+        <text>{{selectedCategoryName || '全部影集'}}</text>
+        <text class="arrow">▼</text>
+      </view>
+    </picker>
+    <picker mode="selector" range="{{subcategoryNames}}" value="{{selectedSubcategoryIndex}}" bindchange="onSubcategoryChange">
+      <view class="filter-item">
+        <text>{{selectedSubcategoryName || '全部子类'}}</text>
+        <text class="arrow">▼</text>
+      </view>
+    </picker>
+  </view>
+
+  <!-- 作品列表 -->
+  <view class="list">
+    <view class="list-item" wx:for="{{works}}" wx:key="_id">
+      <view class="item-cover">
+        <image src="{{item.coverUrl}}" mode="aspectFill" />
+      </view>
+      <view class="item-info">
+        <text class="item-title">{{item.title}}</text>
+        <text class="item-category">{{item.categoryName}} - {{item.subcategoryName}}</text>
+        <text class="item-type">{{item.usageType}}</text>
+      </view>
+      <view class="item-actions">
+        <view class="action-btn edit" bindtap="onEditWork" data-id="{{item._id}}">编辑</view>
+        <view class="action-btn delete" bindtap="onDeleteWork" data-id="{{item._id}}">删除</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty" wx:if="{{works.length === 0}}">
+    <text>暂无作品，请点击右上角添加</text>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+</view>
+
+<!-- 编辑弹窗 -->
+<view class="modal" wx:if="{{showModal}}">
+  <view class="modal-content">
+    <view class="modal-header">
+      <text class="modal-title">{{editMode ? '编辑作品' : '添加作品'}}</text>
+      <text class="modal-close" bindtap="onCloseModal">×</text>
+    </view>
+    <scroll-view class="modal-body" scroll-y="{{true}}">
+      <view class="form-item">
+        <text class="form-label">所属影集</text>
+        <picker mode="selector" range="{{categoryNames}}" value="{{formData.categoryIndex}}" bindchange="onCategoryPickerChange">
+          <view class="picker-input">
+            <text>{{formData.categoryName || '选择影集'}}</text>
+            <text class="arrow">▼</text>
+          </view>
+        </picker>
+      </view>
+      <view class="form-item">
+        <text class="form-label">所属子类</text>
+        <picker wx:if="{{showSubcategoryPicker}}" mode="selector" range="{{currentSubcategoryNames}}" value="{{formData.subcategoryIndex}}" bindchange="onSubcategoryPickerChange">
+          <view class="picker-input">
+            <text>{{formData.subcategoryName || '选择子类'}}</text>
+            <text class="arrow">▼</text>
+          </view>
+        </picker>
+        <view wx:else class="picker-input disabled">
+          <text>请先选择影集</text>
+        </view>
+      </view>
+      <view class="form-item">
+        <text class="form-label">作品标题</text>
+        <input class="form-input" value="{{formData.title}}" bindinput="onTitleInput" placeholder="请输入作品标题" />
+      </view>
+      <view class="form-item">
+        <text class="form-label">封面图片</text>
+        <view class="upload-area" bindtap="onUploadCover">
+          <image wx:if="{{formData.coverUrl}}" src="{{formData.coverUrl}}" mode="aspectFill" />
+          <text wx:else>+ 选择图片</text>
+        </view>
+      </view>
+      <view class="form-item">
+        <text class="form-label">作品图片（可多选）</text>
+        <view class="images-list">
+          <view class="image-item" wx:for="{{formData.images}}" wx:key="*this">
+            <image src="{{item}}" mode="aspectFill" />
+            <text class="image-delete" bindtap="onDeleteImage" data-index="{{index}}">×</text>
+          </view>
+          <view class="image-add" bindtap="onUploadImages">
+            <text>+ 添加图片</text>
+          </view>
+        </view>
+      </view>
+      <view class="form-item">
+        <text class="form-label">用途类型</text>
+        <picker mode="selector" range="{{usageTypes}}" value="{{formData.usageTypeIndex}}" bindchange="onUsageTypeChange">
+          <view class="picker-input">
+            <text>{{formData.usageType || '选择类型'}}</text>
+            <text class="arrow">▼</text>
+          </view>
+        </picker>
+      </view>
+      <view class="form-item">
+        <text class="form-label">作品描述</text>
+        <textarea class="form-textarea" value="{{formData.description}}" bindinput="onDescriptionInput" placeholder="请输入作品描述" />
+      </view>
+      <view class="form-item">
+        <text class="form-label">排序</text>
+        <input class="form-input" type="number" value="{{formData.order}}" bindinput="onOrderInput" placeholder="请输入排序号" />
+      </view>
+      <view class="form-item">
+        <view class="checkbox-item">
+          <text>加入精华相册</text>
+          <switch checked="{{formData.isFeatured}}" bindchange="onFeaturedChange" />
+        </view>
+      </view>
+    </scroll-view>
+    <view class="modal-footer">
+      <view class="modal-btn cancel" bindtap="onCloseModal">取消</view>
+      <view class="modal-btn confirm" bindtap="onSaveWork">保存</view>
+    </view>
+  </view>
+</view>

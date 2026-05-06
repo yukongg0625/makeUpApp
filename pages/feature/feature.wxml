@@ -1,0 +1,47 @@
+<view class="container">
+  <!-- 侧边栏 - 固定显示 -->
+  <view class="sidebar">
+    <view class="sidebar-header">
+      <text class="sidebar-title">{{category.name}}</text>
+    </view>
+    <scroll-view class="sidebar-list" scroll-y="{{true}}">
+      <view 
+        wx:for="{{subcategories}}" 
+        wx:key="_id" 
+        class="sidebar-item {{selectedSubcategory._id === item._id ? 'active' : ''}}" 
+        data-id="{{item._id}}" 
+        bindtap="onSubcategoryTap"
+      >
+        <text>{{item.name}}</text>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 主内容区 -->
+  <view class="main-content">
+    <!-- 作品列表 -->
+    <view class="works-grid">
+      <view 
+        wx:for="{{works}}" 
+        wx:key="_id" 
+        class="work-item" 
+        data-id="{{item._id}}" 
+        bindtap="onWorkTap"
+      >
+        <image class="work-image" src="{{item.coverUrl}}" mode="aspectFill"></image>
+        <view class="work-info">
+          <text class="work-title">{{item.title}}</text>
+          <text class="work-subtitle">{{item.subcategoryName}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 加载中 -->
+    <view wx:if="{{loading}}" class="loading">
+      <text>加载中...</text>
+    </view>
+
+    <!-- 自定义底部导航 -->
+    <tab-bar currentTab="{{0}}"></tab-bar>
+  </view>
+</view>

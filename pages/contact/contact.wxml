@@ -1,0 +1,32 @@
+<view class="container">
+  <view class="contact-card">
+    <view class="contact-header">
+      <text class="contact-title">畔黛造型</text>
+      <text class="contact-subtitle">专业化妆造型服务</text>
+    </view>
+
+    <view class="contact-info">
+      <view class="info-item">
+        <text class="info-label">联系电话</text>
+        <text class="info-value" bindtap="onPhoneCall">{{contactInfo.phone}}</text>
+      </view>
+      <view class="info-item">
+        <text class="info-label">微信号</text>
+        <text class="info-value" bindtap="onCopyWechat">{{contactInfo.wechat}}</text>
+      </view>
+      <view class="info-item">
+        <text class="info-label">地址</text>
+        <text class="info-value">{{contactInfo.address}}</text>
+      </view>
+    </view>
+
+    <button class="contact-btn" bindtap="openWechatChat">
+      联系客服
+    </button>
+  </view>
+
+  <view class="admin-entry" wx:if="{{isAdmin}}" bindtap="goToAdmin">
+    <text class="admin-icon">⚙️</text>
+    <text class="admin-text">后台管理</text>
+  </view>
+</view>

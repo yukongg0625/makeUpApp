@@ -1,0 +1,67 @@
+<!--pages/admin/featured/featured.wxml-->
+<view class="container">
+  <!-- 顶部操作栏 -->
+  <view class="header">
+    <text class="title">精华相册管理</text>
+    <view class="add-btn" bindtap="onAddFeatured">
+      <text>+ 添加作品</text>
+    </view>
+  </view>
+
+  <!-- 作品列表 -->
+  <view class="list">
+    <view class="list-item" wx:for="{{featured}}" wx:key="_id">
+      <view class="item-cover">
+        <image src="{{item.coverUrl}}" mode="aspectFill" />
+      </view>
+      <view class="item-info">
+        <text class="item-title">{{item.title}}</text>
+        <text class="item-category">{{item.categoryName}} - {{item.subcategoryName}}</text>
+        <text class="item-order">排序：{{item.order}}</text>
+      </view>
+      <view class="item-actions">
+        <view class="action-btn edit" bindtap="onEditFeatured" data-id="{{item._id}}">编辑</view>
+        <view class="action-btn delete" bindtap="onDeleteFeatured" data-id="{{item._id}}">删除</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty" wx:if="{{featured.length === 0}}">
+    <text>暂无精华作品，请点击右上角添加</text>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+</view>
+
+<!-- 编辑弹窗 -->
+<view class="modal" wx:if="{{showModal}}">
+  <view class="modal-content">
+    <view class="modal-header">
+      <text class="modal-title">{{editMode ? '编辑精华作品' : '添加精华作品'}}</text>
+      <text class="modal-close" bindtap="onCloseModal">×</text>
+    </view>
+    <scroll-view class="modal-body" scroll-y="{{true}}">
+      <view class="form-item">
+        <text class="form-label">选择作品</text>
+        <picker mode="selector" range="{{workTitles}}" value="{{formData.workIndex}}" bindchange="onWorkPickerChange">
+          <view class="picker-input">
+            <text>{{formData.workTitle || '选择作品'}}</text>
+            <text class="arrow">▼</text>
+          </view>
+        </picker>
+      </view>
+      <view class="form-item">
+        <text class="form-label">排序</text>
+        <input class="form-input" type="number" value="{{formData.order}}" bindinput="onOrderInput" placeholder="请输入排序号" />
+      </view>
+    </scroll-view>
+    <view class="modal-footer">
+      <view class="modal-btn cancel" bindtap="onCloseModal">取消</view>
+      <view class="modal-btn confirm" bindtap="onSaveFeatured">保存</view>
+    </view>
+  </view>
+</view>

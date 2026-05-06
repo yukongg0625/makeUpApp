@@ -13,6 +13,9 @@ exports.main = async (event, context) => {
   const wxContext = cloud.getWXContext()
   
   try {
+    // 先创建集合
+    await createCollections()
+    
     // 初始化分类集合
     await createCategories()
     
@@ -38,42 +41,78 @@ exports.main = async (event, context) => {
   }
 }
 
-// 创建分类数据
-async function createCategories() {
-  const categories = [
-    { _id: '1', name: '汉服', icon: '/images/category-hanfu.png', order: 1, enabled: true },
-    { _id: '2', name: '旗袍', icon: '/images/category-qipao.png', order: 2, enabled: true },
-    { _id: '3', name: '礼服', icon: '/images/category-dress.png', order: 3, enabled: true },
-    { _id: '4', name: '沙丽', icon: '/images/category-sari.png', order: 4, enabled: true },
-    { _id: '5', name: '和服', icon: '/images/category-kimono.png', order: 5, enabled: true }
-  ]
-
-  for (const category of categories) {
+// 创建集合
+async function createCollections() {
+  const collections = ['categories', 'subcategories', 'banners', 'works', 'featured']
+  
+  for (const collectionName of collections) {
     try {
-      await db.collection('categories').doc(category._id).set({
-        data: category
-      })
+      await db.createCollection(collectionName)
+      console.log('创建集合成功:', collectionName)
+      
+      // 注意：微信云开发不支持通过代码设置集合权限
+      // 需要在云开发控制台手动设置权限为"所有用户可读，仅创建者可读写"
     } catch (err) {
-      console.log('分类已存在:', category.name)
+      console.log('集合已存在或创建失败:', collectionName, err.message)
     }
   }
 }
 
-// 创建子分类数据
+// 创建影集数据
+async function createCategories() {
+  const categories = [
+    { _id: '1', name: '化妆造型', coverImage: '', order: 1, enabled: true },
+    { _id: '2', name: '整体造型', coverImage: '', order: 2, enabled: true },
+    { _id: '3', name: '服装租赁', coverImage: '', order: 3, enabled: true },
+    { _id: '4', name: '饰品租赁', coverImage: '', order: 4, enabled: true },
+    { _id: '5', name: '美妆私教', coverImage: '', order: 5, enabled: true }
+  ]
+
+  for (const category of categories) {
+    try {
+      const result = await db.collection('categories').add({
+        data: category
+      })
+      console.log('添加影集成功:', category.name, result._id)
+    } catch (err) {
+      console.error('添加影集失败:', category.name, err)
+    }
+  }
+}
+
+// 创建子类数据
 async function createSubcategories() {
   const subcategories = [
-    { _id: '1', name: '服装租赁', order: 1, enabled: true },
-    { _id: '2', name: '整体造型', order: 2, enabled: true },
-    { _id: '3', name: '化妆造型', order: 3, enabled: true }
+    // 化妆造型子类
+    { _id: '1-1', categoryId: '1', categoryName: '化妆造型', name: '妆造1', order: 1, enabled: true },
+    { _id: '1-2', categoryId: '1', categoryName: '化妆造型', name: '妆造2', order: 2, enabled: true },
+    { _id: '1-3', categoryId: '1', categoryName: '化妆造型', name: '妆造3', order: 3, enabled: true },
+    // 整体造型子类
+    { _id: '2-1', categoryId: '2', categoryName: '整体造型', name: '妆造1', order: 1, enabled: true },
+    { _id: '2-2', categoryId: '2', categoryName: '整体造型', name: '妆造2', order: 2, enabled: true },
+    { _id: '2-3', categoryId: '2', categoryName: '整体造型', name: '妆造3', order: 3, enabled: true },
+    // 服装租赁子类
+    { _id: '3-1', categoryId: '3', categoryName: '服装租赁', name: '租赁1', order: 1, enabled: true },
+    { _id: '3-2', categoryId: '3', categoryName: '服装租赁', name: '租赁2', order: 2, enabled: true },
+    { _id: '3-3', categoryId: '3', categoryName: '服装租赁', name: '租赁3', order: 3, enabled: true },
+    // 饰品租赁子类
+    { _id: '4-1', categoryId: '4', categoryName: '饰品租赁', name: '租赁1', order: 1, enabled: true },
+    { _id: '4-2', categoryId: '4', categoryName: '饰品租赁', name: '租赁2', order: 2, enabled: true },
+    { _id: '4-3', categoryId: '4', categoryName: '饰品租赁', name: '租赁3', order: 3, enabled: true },
+    // 美妆私教子类
+    { _id: '5-1', categoryId: '5', categoryName: '美妆私教', name: '美妆1', order: 1, enabled: true },
+    { _id: '5-2', categoryId: '5', categoryName: '美妆私教', name: '美妆2', order: 2, enabled: true },
+    { _id: '5-3', categoryId: '5', categoryName: '美妆私教', name: '美妆3', order: 3, enabled: true }
   ]
 
   for (const subcategory of subcategories) {
     try {
-      await db.collection('subcategories').doc(subcategory._id).set({
+      const result = await db.collection('subcategories').add({
         data: subcategory
       })
+      console.log('添加子类成功:', subcategory.name, result._id)
     } catch (err) {
-      console.log('子分类已存在:', subcategory.name)
+      console.error('添加子类失败:', subcategory.name, err)
     }
   }
 }
@@ -99,11 +138,12 @@ async function createBanners() {
 
   for (const banner of banners) {
     try {
-      await db.collection('banners').doc(banner._id).set({
+      const result = await db.collection('banners').add({
         data: banner
       })
+      console.log('添加轮播图成功:', banner._id, result._id)
     } catch (err) {
-      console.log('轮播图已存在:', banner._id)
+      console.error('添加轮播图失败:', banner._id, err)
     }
   }
 }
@@ -112,7 +152,6 @@ async function createBanners() {
 async function createSampleWorks() {
   const sampleWorks = [
     {
-      _id: 'work1',
       title: '汉服 | 与诺',
       subtitle: '古典优雅系列',
       categoryId: 1,
@@ -129,7 +168,6 @@ async function createSampleWorks() {
       createTime: db.serverDate()
     },
     {
-      _id: 'work2',
       title: '汉服 | 长歌系列',
       subtitle: '明制汉服',
       categoryId: 1,
@@ -146,7 +184,6 @@ async function createSampleWorks() {
       createTime: db.serverDate()
     },
     {
-      _id: 'work3',
       title: '旗袍 | 花样年华',
       subtitle: '复古风情',
       categoryId: 2,
@@ -163,7 +200,6 @@ async function createSampleWorks() {
       createTime: db.serverDate()
     },
     {
-      _id: 'work4',
       title: '礼服 | 星空',
       subtitle: '晚宴礼服',
       categoryId: 3,
@@ -183,11 +219,12 @@ async function createSampleWorks() {
 
   for (const work of sampleWorks) {
     try {
-      await db.collection('works').doc(work._id).set({
+      const result = await db.collection('works').add({
         data: work
       })
+      console.log('添加作品成功:', work.title, result._id)
     } catch (err) {
-      console.log('作品已存在:', work.title)
+      console.error('添加作品失败:', work.title, err)
     }
   }
 }

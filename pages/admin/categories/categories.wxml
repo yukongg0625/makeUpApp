@@ -1,0 +1,68 @@
+<!--pages/admin/categories/categories.wxml-->
+<view class="container">
+  <!-- 顶部操作栏 -->
+  <view class="header">
+    <text class="title">影集管理</text>
+    <view class="add-btn" bindtap="onAddCategory">
+      <text>+ 添加影集</text>
+    </view>
+  </view>
+
+  <!-- 影集列表 -->
+  <view class="list">
+    <view class="list-item" wx:for="{{categories}}" wx:key="_id">
+      <view class="item-cover">
+        <image src="{{item.coverImage}}" mode="aspectFill" />
+      </view>
+      <view class="item-info">
+        <text class="item-name">{{item.name}}</text>
+        <text class="item-order">排序：{{item.order}}</text>
+      </view>
+      <view class="item-actions">
+        <view class="action-btn edit" bindtap="onEditCategory" data-id="{{item._id}}">编辑</view>
+        <view class="action-btn delete" bindtap="onDeleteCategory" data-id="{{item._id}}">删除</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty" wx:if="{{categories.length === 0}}">
+    <text>暂无影集，请点击右上角添加</text>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+</view>
+
+<!-- 编辑弹窗 -->
+<view class="modal" wx:if="{{showModal}}">
+  <view class="modal-content">
+    <view class="modal-header">
+      <text class="modal-title">{{editMode ? '编辑影集' : '添加影集'}}</text>
+      <text class="modal-close" bindtap="onCloseModal">×</text>
+    </view>
+    <view class="modal-body">
+      <view class="form-item">
+        <text class="form-label">影集名称</text>
+        <input class="form-input" value="{{formData.name}}" bindinput="onNameInput" placeholder="请输入影集名称" />
+      </view>
+      <view class="form-item">
+        <text class="form-label">封面图片</text>
+        <view class="upload-area" bindtap="onUploadCover">
+          <image wx:if="{{formData.coverImage}}" src="{{formData.coverImage}}" mode="aspectFill" />
+          <text wx:else>+ 选择图片</text>
+        </view>
+      </view>
+      <view class="form-item">
+        <text class="form-label">排序</text>
+        <input class="form-input" type="number" value="{{formData.order}}" bindinput="onOrderInput" placeholder="请输入排序号" />
+      </view>
+    </view>
+    <view class="modal-footer">
+      <view class="modal-btn cancel" bindtap="onCloseModal">取消</view>
+      <view class="modal-btn confirm" bindtap="onSaveCategory">保存</view>
+    </view>
+  </view>
+</view>

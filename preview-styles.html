@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>首页导航边框样式预览</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f5;
+      padding: 40px 20px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 40px;
+      font-size: 28px;
+    }
+
+    h2 {
+      text-align: center;
+      color: #666;
+      margin: 40px 0 20px;
+      font-size: 22px;
+    }
+
+    .preview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 30px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .preview-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 30px 20px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .preview-card h3 {
+      color: #333;
+      margin-bottom: 20px;
+      font-size: 16px;
+    }
+
+    .preview-card p {
+      color: #666;
+      font-size: 12px;
+      margin-top: 15px;
+    }
+
+    .feature-item {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .feature-text {
+      font-size: 14px;
+      color: #666;
+      margin-top: 12px;
+    }
+
+    /* ========== 浪漫风格 ========== */
+
+    /* 浪漫 1：花瓣形边框 */
+    .style-romantic-1 .feature-cover {
+      width: 100px;
+      height: 100px;
+      border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+      object-fit: cover;
+      box-shadow: 0 4px 15px rgba(255, 182, 193, 0.5);
+      border: 3px solid #ffb6c1;
+      position: relative;
+    }
+
+    .style-romantic-1 .feature-cover::after {
+      content: '';
+      position: absolute;
+      top: -6px; left: -6px; right: -6px; bottom: -6px;
+      border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+      border: 2px dashed #ffc0cb;
+      opacity: 0.6;
+    }
+
+    /* 浪漫 2：柔雾发光边框 */
+    .style-romantic-2 .feature-cover {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      box-shadow: 
+        0 0 20px rgba(255, 182, 193, 0.6),
+        0 0 40px rgba(255, 182, 193, 0.3),
+        0 4px 12px rgba(0, 0, 0, 0.1);
+      border: 2px solid #fff;
+    }
+
+    /* 浪漫 3：爱心点缀边框 */
+    .style-romantic-3 .feature-cover {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      border: 3px solid transparent;
+      background-clip: padding-box;
+      position: relative;
+    }
+
+    .style-romantic-3 .feature-cover::before {
+      content: '';
+      position: absolute;
+      top: -3px; left: -3px; right: -3px; bottom: -3px;
+      border-radius: 50%;
+      background: linear-gradient(45deg, #ff9a9e, #fecfef, #ff9a9e, #fad0c4);
+      z-index: -1;
+    }
+
+    /* 浪漫 4：丝带缠绕边框 */
+    .style-romantic-4 .feature-cover {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      border: 4px solid #fff;
+      position: relative;
+    }
+
+    .style-romantic-4 .feature-cover::before {
+      content: '';
+      position: absolute;
+      top: -8px; left: -8px; right: -8px; bottom: -8px;
+      border-radius: 50%;
+      border: 2px solid #e8a0bf;
+      border-top-color: transparent;
+      border-bottom-color: transparent;
+      transform: rotate(45deg);
+    }
+
+    .style-romantic-4 .feature-cover::after {
+      content: '';
+      position: absolute;
+      top: -8px; left: -8px; right: -8px; bottom: -8px;
+      border-radius: 50%;
+      border: 2px solid #e8a0bf;
+      border-left-color: transparent;
+      border-right-color: transparent;
+      transform: rotate(-45deg);
+    }
+
+    /* ========== 国风风格 ========== */
+
+    /* 国风 1：回纹边框 */
+    .style-chinese-1 .feature-cover {
+      width: 100px;
+      height: 100px;
+      border-radius: 8px;
+      object-fit: cover;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      border: 4px solid #c41e3a;
+      position: relative;
+    }
+
+    .style-chinese-1 .feature-cover::before {
+      content: '';
+      position: absolute;
+      top: -8px; left: -8px; right: -8px; bottom: -8px;
+      border-radius: 12px;
+      border: 2px solid #c41e3a;
+      background: 
+        linear-gradient(90deg, #c41e3a 2px, transparent 2px) 0 0,
+        linear-gradient(90deg, #c41e3a 2px, transparent 2px) 0 100%,
+        linear-gradient(0deg, #c41e3a 2px, transparent 2px) 0 0,
+        linear-gradient(0deg, #c41e3a 2px, transparent 2px) 100% 0;
+      background-size: 10px 10px;
+      background-repeat: no-repeat;
+    }
+
+    /* 国风 2：云纹边框 */
+    .style-chinese-2 .feature-cover {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      box-shadow: 0 4px 15px rgba(139, 69, 19, 0.3);
+      border: 3px solid #8b4513;
+      position: relative;
+    }
+
+    .style-chinese-2 .feature-cover::before {
+      content: '';
+      position: absolute;
+      top: -6px; left: -6px; right: -6px; bottom: -6px;
+      border-radius: 50%;
+      border: 2px dashed #daa520;
+      animation: cloud-rotate 10s linear infinite;
+    }
+
+    @keyframes cloud-rotate {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* 国风 3：窗棂边框 */
+    .style-chinese-3 .feature-cover {
+      width: 100px;
+      height: 100px;
+      border-radius: 4px;
+      object-fit: cover;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      border: 3px solid #2c5f2d;
+      position: relative;
+    }
+
+    .style-chinese-3 .feature-cover::before {
+      content: '';
+      position: absolute;
+      top: -6px; left: -6px; right: -6px; bottom: -6px;
+      border-radius: 8px;
+      border: 2px solid #2c5f2d;
+      background: 
+        repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 10px,
+          #2c5f2d 10px,
+          #2c5f2d 12px
+        ),
+        repeating-linear-gradient(
+          90deg,
+          transparent,
+          transparent 10px,
+          #2c5f2d 10px,
+          #2c5f2d 12px
+        );
+      opacity: 0.3;
+    }
+
+    /* 国风 4：水墨边框 */
+    .style-chinese-4 .feature-cover {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      box-shadow: 
+        0 0 0 4px #fff,
+        0 0 0 6px #333,
+        0 4px 15px rgba(0, 0, 0, 0.3);
+      border: 2px solid #333;
+    }
+
+    /* ========== 标签样式 ========== */
+    .tag {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      margin-top: 10px;
+    }
+
+    .tag-romantic {
+      background: linear-gradient(135deg, #ff9a9e, #fecfef);
+      color: #fff;
+    }
+
+    .tag-chinese {
+      background: linear-gradient(135deg, #c41e3a, #daa520);
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <h1>首页导航图片边框样式预览</h1>
+
+  <h2>🌸 浪漫风格</h2>
+  <div class="preview-grid">
+    <!-- 浪漫 1 -->
+    <div class="preview-card">
+      <h3>浪漫 1</h3>
+      <div class="feature-item style-romantic-1">
+        <img class="feature-cover" src="https://picsum.photos/seed/romantic1/200/200" alt="示例">
+        <span class="feature-text">化妆造型</span>
+      </div>
+      <p>花瓣形边框 + 粉色虚线</p>
+      <span class="tag tag-romantic">甜美浪漫</span>
+    </div>
+
+    <!-- 浪漫 2 -->
+    <div class="preview-card">
+      <h3>浪漫 2</h3>
+      <div class="feature-item style-romantic-2">
+        <img class="feature-cover" src="https://picsum.photos/seed/romantic2/200/200" alt="示例">
+        <span class="feature-text">化妆造型</span>
+      </div>
+      <p>圆形 + 柔雾发光效果</p>
+      <span class="tag tag-romantic">梦幻柔美</span>
+    </div>
+
+    <!-- 浪漫 3 -->
+    <div class="preview-card">
+      <h3>浪漫 3</h3>
+      <div class="feature-item style-romantic-3">
+        <img class="feature-cover" src="https://picsum.photos/seed/romantic3/200/200" alt="示例">
+        <span class="feature-text">化妆造型</span>
+      </div>
+      <p>圆形 + 粉色渐变边框</p>
+      <span class="tag tag-romantic">温柔优雅</span>
+    </div>
+
+    <!-- 浪漫 4 -->
+    <div class="preview-card">
+      <h3>浪漫 4</h3>
+      <div class="feature-item style-romantic-4">
+        <img class="feature-cover" src="https://picsum.photos/seed/romantic4/200/200" alt="示例">
+        <span class="feature-text">化妆造型</span>
+      </div>
+      <p>圆形 + 丝带缠绕效果</p>
+      <span class="tag tag-romantic">精致丝带</span>
+    </div>
+  </div>
+
+  <h2>🏮 国风风格</h2>
+  <div class="preview-grid">
+    <!-- 国风 1 -->
+    <div class="preview-card">
+      <h3>国风 1</h3>
+      <div class="feature-item style-chinese-1">
+        <img class="feature-cover" src="https://picsum.photos/seed/chinese1/200/200" alt="示例">
+        <span class="feature-text">化妆造型</span>
+      </div>
+      <p>方角 + 回纹装饰边框</p>
+      <span class="tag tag-chinese">传统回纹</span>
+    </div>
+
+    <!-- 国风 2 -->
+    <div class="preview-card">
+      <h3>国风 2</h3>
+      <div class="feature-item style-chinese-2">
+        <img class="feature-cover" src="https://picsum.photos/seed/chinese2/200/200" alt="示例">
+        <span class="feature-text">化妆造型</span>
+      </div>
+      <p>圆形 + 祥云旋转边框</p>
+      <span class="tag tag-chinese">祥云纹样</span>
+    </div>
+
+    <!-- 国风 3 -->
+    <div class="preview-card">
+      <h3>国风 3</h3>
+      <div class="feature-item style-chinese-3">
+        <img class="feature-cover" src="https://picsum.photos/seed/chinese3/200/200" alt="示例">
+        <span class="feature-text">化妆造型</span>
+      </div>
+      <p>方角 + 窗格纹边框</p>
+      <span class="tag tag-chinese">古典窗棂</span>
+    </div>
+
+    <!-- 国风 4 -->
+    <div class="preview-card">
+      <h3>国风 4</h3>
+      <div class="feature-item style-chinese-4">
+        <img class="feature-cover" src="https://picsum.photos/seed/chinese4/200/200" alt="示例">
+        <span class="feature-text">化妆造型</span>
+      </div>
+      <p>圆形 + 水墨双层边框</p>
+      <span class="tag tag-chinese">水墨意境</span>
+    </div>
+  </div>
+</body>
+</html>

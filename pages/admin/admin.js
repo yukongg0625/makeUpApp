@@ -1,0 +1,26 @@
+// pages/admin/admin.js
+Page({
+  data: {
+  },
+
+  onLoad: function (options) {
+  },
+
+  onMenuTap: function (e) {
+    const type = e.currentTarget.dataset.type
+    
+    const pageMap = {
+      'categories': '/pages/admin/categories/categories',
+      'subcategories': '/pages/admin/subcategories/subcategories',
+      'works': '/pages/admin/works/works',
+      'featured': '/pages/admin/featured/featured'
+    }
+    
+    const url = pageMap[type]
+    if (url) {
+      wx.navigateTo({
+        url: url
+      })
+    }
+  }
+})

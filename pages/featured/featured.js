@@ -18,38 +18,66 @@ Page({
       this.setData({ loading: true })
     }
 
-    // 模拟数据，用于临时展示
-    const mockFeaturedWorks = [
-      {
-        _id: 'work1',
-        title: '汉服 | 与诺',
-        subtitle: '整体造型',
-        coverUrl: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=traditional%20chinese%20hanfu%20dress%20elegant%20portrait%20makeup%20styling&image_size=landscape_4_3',
-        categoryId: 1,
-        isFeatured: true
-      },
-      {
-        _id: 'work2',
-        title: '旗袍 | 雅韵',
-        subtitle: '服装租赁',
-        coverUrl: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=chinese%20qipao%20dress%20traditional%20elegant%20makeup%20styling&image_size=landscape_4_3',
-        categoryId: 2,
-        isFeatured: true
-      },
-      {
-        _id: 'work3',
-        title: '礼服 | 星辰',
-        subtitle: '整体造型',
-        coverUrl: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=elegant%20evening%20gown%20formal%20dress%20makeup%20styling&image_size=landscape_4_3',
-        categoryId: 3,
-        isFeatured: true
-      }
-    ]
+    const db = wx.cloud.database()
+    db.collection('works')
+      .where({ isFeatured: true, enabled: true })
+      .orderBy('order', 'asc')
+      .skip(this.data.skip)
+      .limit(this.data.limit)
+      .get()
+      .then(res => {
+        const works = res.data.map(item => ({
+          ...item,
+          id: item._id,
+          coverUrl: item.coverImage || ''
+        }))
+        
+        // 转换云存储 File ID 为临时 URL
+        this.convertCloudStorageUrls(works, 'coverUrl').then(convertedWorks => {
+          this.setData({
+            featuredWorks: this.data.skip === 0 ? convertedWorks : [...this.data.featuredWorks, ...convertedWorks],
+            hasMore: convertedWorks.length >= this.data.limit,
+            loading: false,
+            skip: this.data.skip + convertedWorks.length
+          })
+        })
+      })
+      .catch(err => {
+        console.error('加载精华相册失败:', err)
+        this.setData({ loading: false })
+      })
+  },
 
-    this.setData({
-      featuredWorks: mockFeaturedWorks,
-      hasMore: false,
-      loading: false
+  // 转换云存储 File ID 为临时 URL
+  convertCloudStorageUrls: function(data, fieldName) {
+    const fileIds = data
+      .filter(item => item[fieldName] && item[fieldName].startsWith('cloud://'))
+      .map(item => item[fieldName])
+    
+    if (fileIds.length === 0) {
+      return Promise.resolve(data)
+    }
+    
+    return wx.cloud.getTempFileURL({
+      fileList: fileIds
+    }).then(res => {
+      const urlMap = {}
+      res.fileList.forEach(file => {
+        urlMap[file.fileID] = file.tempFileURL
+      })
+      
+      return data.map(item => {
+        if (item[fieldName] && item[fieldName].startsWith('cloud://')) {
+          return {
+            ...item,
+            [fieldName]: urlMap[item[fieldName]] || item[fieldName]
+          }
+        }
+        return item
+      })
+    }).catch(err => {
+      console.error('转换云存储 URL 失败:', err)
+      return data
     })
   },
 

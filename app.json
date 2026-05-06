@@ -1,15 +1,20 @@
 {
   "pages": [
     "pages/index/index",
-    "pages/gallery/gallery",
+    "pages/feature/feature",
     "pages/detail/detail",
-    "pages/booking/booking",
-    "pages/featured/featured"
+    "pages/featured/featured",
+    "pages/contact/contact",
+    "pages/admin/admin",
+    "pages/admin/categories/categories",
+    "pages/admin/subcategories/subcategories",
+    "pages/admin/works/works",
+    "pages/admin/featured/featured"
   ],
   "window": {
     "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#f8f8f8",
-    "navigationBarTitleText": "造型师作品集",
+    "navigationBarTitleText": "潘潘的美妝穿搭合集",
     "navigationBarTextStyle": "black"
   },
   "tabBar": {
@@ -20,19 +25,19 @@
     "list": [
       {
         "pagePath": "pages/index/index",
-        "text": "首页",
+        "text": "主页",
         "iconPath": "images/home.png",
         "selectedIconPath": "images/home-active.png"
       },
       {
         "pagePath": "pages/featured/featured",
-        "text": "精选",
+        "text": "创意展示",
         "iconPath": "images/star.png",
         "selectedIconPath": "images/star-active.png"
       },
       {
-        "pagePath": "pages/booking/booking",
-        "text": "预约",
+        "pagePath": "pages/contact/contact",
+        "text": "联系我们",
         "iconPath": "images/calendar.png",
         "selectedIconPath": "images/calendar-active.png"
       }

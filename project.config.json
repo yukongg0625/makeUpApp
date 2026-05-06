@@ -41,8 +41,11 @@
   },
   "compileType": "miniprogram",
   "libVersion": "2.19.4",
-  "appid": "wx3033c62b8bb86fd3",
+  "appid": "wx97c52414d46b9e11",
   "projectname": "makeup-app",
+  "cloudfunctionRoot": "cloudfunctions/",
+  "cloudfunctionTemplateRoot": "cloudfunctionTemplate/",
+  "cloudEnv": "cloud1-d6gmlx4ss77f8e361",
   "condition": {},
   "editorSetting": {
     "tabIndent": "insertSpaces",

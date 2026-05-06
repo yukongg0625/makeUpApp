@@ -2,7 +2,23 @@
   "description": "项目私有配置文件。",
   "projectname": "makeup-app",
   "setting": {
-    "compileHotReLoad": true
+    "compileHotReLoad": true,
+    "urlCheck": false
   },
-  "libVersion": "3.14.3"
+  "libVersion": "2.19.4",
+  "cloudfunctionRoot": "cloudfunctions/",
+  "cloudEnv": "cloud1-d6gmlx4ss77f8e361",
+  "condition": {
+    "miniprogram": {
+      "list": [
+        {
+          "name": "首页",
+          "pathName": "pages/index/index",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        }
+      ]
+    }
+  }
 }
