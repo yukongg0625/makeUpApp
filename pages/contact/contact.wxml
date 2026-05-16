@@ -1,8 +1,8 @@
 <view class="container">
   <view class="contact-card">
     <view class="contact-header">
-      <text class="contact-title">畔黛造型</text>
-      <text class="contact-subtitle">专业化妆造型服务</text>
+      <text class="contact-title">{{contactInfo.name || '畔黛造型'}}</text>
+      <text class="contact-subtitle">{{contactInfo.description || '专业化妆造型服务'}}</text>
     </view>
 
     <view class="contact-info">

@@ -10,12 +10,18 @@
 
   <!-- 影集列表 -->
   <view class="list">
-    <view class="list-item" wx:for="{{categories}}" wx:key="_id">
+    <view class="list-item {{item.hidden ? 'hidden-item' : ''}}" wx:for="{{categories}}" wx:key="_id">
       <view class="item-cover">
         <image src="{{item.coverImage}}" mode="aspectFill" />
+        <view class="hidden-badge" wx:if="{{item.hidden}}">已隐藏</view>
       </view>
       <view class="item-info">
-        <text class="item-name">{{item.name}}</text>
+        <view class="item-name-row">
+          <text class="item-name">{{item.name}}</text>
+          <view class="status-tag {{item.hidden ? 'hidden' : 'visible'}}">
+            <text>{{item.hidden ? '已隐藏' : '可见'}}</text>
+          </view>
+        </view>
         <text class="item-order">排序：{{item.order}}</text>
       </view>
       <view class="item-actions">
@@ -45,7 +51,7 @@
     </view>
     <view class="modal-body">
       <view class="form-item">
-        <text class="form-label">影集名称</text>
+        <text class="form-label">影集名称<text class="required">*</text></text>
         <input class="form-input" value="{{formData.name}}" bindinput="onNameInput" placeholder="请输入影集名称" />
       </view>
       <view class="form-item">
@@ -58,6 +64,12 @@
       <view class="form-item">
         <text class="form-label">排序</text>
         <input class="form-input" type="number" value="{{formData.order}}" bindinput="onOrderInput" placeholder="请输入排序号" />
+      </view>
+      <view class="form-item">
+        <view class="toggle-btn {{formData.hidden ? 'active' : ''}}" bindtap="onToggleHidden">
+          <text>{{formData.hidden ? '显示影集' : '隐藏影集'}}</text>
+        </view>
+        <text class="form-hint">{{formData.hidden ? '选择显示影集，用户可见' : '隐藏后该影集将对用户不可见'}}</text>
       </view>
     </view>
     <view class="modal-footer">

@@ -13,7 +13,10 @@ Page({
       'categories': '/pages/admin/categories/categories',
       'subcategories': '/pages/admin/subcategories/subcategories',
       'works': '/pages/admin/works/works',
-      'featured': '/pages/admin/featured/featured'
+      'featured': '/pages/admin/featured/featured',
+      'contact': '/pages/admin/contact/contact',
+      'customer': '/pages/admin/customer/customer',
+      'cleanup': '/pages/admin/cleanup/cleanup'
     }
     
     const url = pageMap[type]

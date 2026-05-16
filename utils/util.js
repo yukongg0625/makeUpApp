@@ -75,7 +75,12 @@ export function compressImage(src, quality = 0.8) {
 export function uploadFile(filePath, cloudPath) {
   return wx.cloud.uploadFile({
     cloudPath,
-    filePath
+    filePath,
+    config: {
+      header: {
+        'x-cos-acl': 'public-read'
+      }
+    }
   })
 }
 
@@ -147,6 +152,66 @@ export function throttle(fn, delay = 300) {
       lastTime = now
     }
   }
+}
+
+/**
+ * 获取图片临时URL（通过云函数，绕过权限限制）
+ * @param {string|Array} fileIds - 文件ID或文件ID数组
+ */
+export function getImageTempUrl(fileIds) {
+  return new Promise((resolve, reject) => {
+    if (!fileIds) {
+      reject(new Error('文件ID不能为空'))
+      return
+    }
+
+    const fileList = Array.isArray(fileIds) ? fileIds : [fileIds]
+
+    wx.cloud.callFunction({
+      name: 'getImageUrl',
+      data: {
+        action: 'getTempFileURL',
+        fileList: fileList
+      },
+      success: res => {
+        if (res.result && res.result.success) {
+          resolve(res.result)
+        } else {
+          reject(new Error(res.result.message || '获取图片URL失败'))
+        }
+      },
+      fail: reject
+    })
+  })
+}
+
+/**
+ * 获取单张图片临时URL
+ * @param {string} fileId - 文件ID
+ */
+export function getSingleImageUrl(fileId) {
+  return new Promise((resolve, reject) => {
+    if (!fileId) {
+      reject(new Error('文件ID不能为空'))
+      return
+    }
+
+    wx.cloud.callFunction({
+      name: 'getImageUrl',
+      data: {
+        action: 'getSingleURL',
+        fileList: [fileId]
+      },
+      success: res => {
+        if (res.result && res.result.success) {
+          resolve(res.result.tempFileURL)
+        } else {
+          reject(new Error(res.result.message || '获取图片URL失败'))
+        }
+      },
+      fail: reject
+    })
+  })
 }
 
 /**

@@ -11,12 +11,12 @@ Page({
     selectedCategoryName: '全部影集',
     selectedSubcategoryIndex: -1,
     selectedSubcategoryName: '全部子类',
-    usageTypes: ['服装租赁', '整体造型', '化妆造型'],
     loading: true,
     showModal: false,
     editMode: false,
     editId: null,
     showSubcategoryPicker: false,
+    hasChanges: false,
     formData: {
       categoryId: '',
       categoryName: '',
@@ -30,10 +30,10 @@ Page({
       images: [],
       imageFileIds: [],
       usageType: '',
-      usageTypeIndex: -1,
       description: '',
       order: 1,
-      isFeatured: false
+      isFeatured: false,
+      hidden: false
     }
   },
 
@@ -85,7 +85,7 @@ Page({
       query = query.where({ _id: _.exists(true) })
     }
     
-    query.orderBy('order', 'asc')
+    return query.orderBy('order', 'asc')
       .get()
       .then(res => {
         const subcategories = res.data
@@ -157,13 +157,14 @@ Page({
       return Promise.resolve(data)
     }
     
-    return wx.cloud.getTempFileURL({
-      fileList: fileIds
+    return wx.cloud.callFunction({
+      name: 'getImageUrl',
+      data: {
+        action: 'getTempFileURL',
+        fileList: fileIds
+      }
     }).then(res => {
-      const urlMap = {}
-      res.fileList.forEach(file => {
-        urlMap[file.fileID] = file.tempFileURL
-      })
+      const urlMap = res.result.urlMap || {}
       
       return data.map(item => {
         if (item[fieldName] && item[fieldName].startsWith('cloud://')) {
@@ -177,6 +178,35 @@ Page({
     }).catch(err => {
       console.error('转换云存储 URL 失败:', err)
       return data
+    })
+  },
+
+  // 转换图片 File ID 数组为临时 URL
+  convertImageFileIdsToUrls: function(fileIds) {
+    const cloudFileIds = fileIds.filter(id => id && id.startsWith('cloud://'))
+    
+    if (cloudFileIds.length === 0) {
+      return Promise.resolve(fileIds)
+    }
+    
+    return wx.cloud.callFunction({
+      name: 'getImageUrl',
+      data: {
+        action: 'getTempFileURL',
+        fileList: cloudFileIds
+      }
+    }).then(res => {
+      const urlMap = res.result.urlMap || {}
+      
+      return fileIds.map(fileId => {
+        if (fileId && fileId.startsWith('cloud://')) {
+          return urlMap[fileId] || fileId
+        }
+        return fileId
+      })
+    }).catch(err => {
+      console.error('转换图片 URL 失败:', err)
+      return fileIds
     })
   },
 
@@ -197,17 +227,17 @@ Page({
       return Promise.resolve(works)
     }
     
-    return wx.cloud.getTempFileURL({
-      fileList: allFileIds
+    return wx.cloud.callFunction({
+      name: 'getImageUrl',
+      data: {
+        action: 'getTempFileURL',
+        fileList: allFileIds
+      }
     }).then(res => {
-      const urlMap = {}
-      res.fileList.forEach(file => {
-        urlMap[file.fileID] = file.tempFileURL
-      })
+      const urlMap = res.result.urlMap || {}
       
       return works.map(work => {
         if (work.images && Array.isArray(work.images)) {
-          // 创建新数组，不修改原始 _originalImages
           const convertedImages = work.images.map(fileId => {
             return urlMap[fileId] || fileId
           })
@@ -234,8 +264,9 @@ Page({
         selectedSubcategoryIndex: -1,
         selectedSubcategoryName: '全部子类'
       })
-      this.loadSubcategories()
-      this.loadWorks()
+      this.loadSubcategories().then(() => {
+        this.loadWorks()
+      })
     } else {
       const category = this.data.categories[index]
       this.setData({
@@ -244,8 +275,9 @@ Page({
         selectedSubcategoryIndex: -1,
         selectedSubcategoryName: '全部子类'
       })
-      this.loadSubcategories(category._id)
-      this.loadWorks(category._id)
+      this.loadSubcategories(category._id).then(() => {
+        this.loadWorks(category._id)
+      })
     }
   },
 
@@ -267,6 +299,11 @@ Page({
       })
       this.loadWorks(subcategory.categoryId, subcategory._id)
     }
+  },
+
+  onWorkTap: function (e) {
+    const id = e.currentTarget.dataset.id
+    this.onEditWork({ currentTarget: { dataset: { id: id } } })
   },
 
   onAddWork: function () {
@@ -298,38 +335,77 @@ Page({
         images: [],
         imageFileIds: [],
         usageType: '',
-        usageTypeIndex: -1,
         description: '',
         order: 1,
         isFeatured: false
       },
       currentSubcategoryNames: currentSubcategoryNames,
-      _currentSubcategories: currentSubcategories
+      _currentSubcategories: currentSubcategories,
+      hasChanges: false
     })
+    
+    if (selectedSubcategoryId) {
+      const db = wx.cloud.database()
+      db.collection('works')
+        .where({ subcategoryId: selectedSubcategoryId })
+        .orderBy('order', 'desc')
+        .limit(1)
+        .get()
+        .then(res => {
+          let nextOrder = 1
+          if (res.data && res.data.length > 0 && res.data[0].order) {
+            nextOrder = res.data[0].order + 1
+          }
+          
+          this.setData({
+            'formData.order': nextOrder
+          })
+        })
+        .catch(err => {
+          console.error('获取最大order失败:', err)
+        })
+    }
   },
 
   onEditWork: function (e) {
     const id = e.currentTarget.dataset.id
-    const work = this.data.works.find(item => item._id === id)
+    console.log('编辑作品 ID:', id)
+    console.log('当前作品列表:', this.data.works.map(w => ({ _id: w._id, title: w.title })))
     
-    if (work) {
-      const categoryIndex = this.data.categories.findIndex(
-        cat => cat._id === work.categoryId
-      )
-      
-      const subcategoryIndex = this.data.subcategories.findIndex(
-        sub => sub._id === work.subcategoryId
-      )
-      
-      const usageTypeIndex = this.data.usageTypes.indexOf(work.usageType)
-      
-      const currentSubcategories = this.data.subcategories.filter(
-        sub => String(sub.categoryId) === String(work.categoryId)
-      )
-      
-      // 获取原始 File ID（在转换前保存的）
-      const originalCoverFileId = work._originalCoverImage || work.coverImage || ''
-      const originalImageFileIds = work._originalImages || work.images || []
+    const work = this.data.works.find(item => String(item._id) === String(id))
+    
+    if (!work) {
+      console.error('未找到作品:', id)
+      wx.showToast({ title: '作品不存在', icon: 'none' })
+      return
+    }
+    
+    console.log('找到作品:', work)
+    
+    let categoryIndex = this.data.categories.findIndex(
+      cat => String(cat._id) === String(work.categoryId)
+    )
+    
+    let subcategoryIndex = this.data.subcategories.findIndex(
+      sub => String(sub._id) === String(work.subcategoryId)
+    )
+    
+    let currentSubcategories = this.data.subcategories.filter(
+      sub => String(sub.categoryId) === String(work.categoryId)
+    )
+    
+    if (currentSubcategories.length === 0) {
+      currentSubcategories = [{ _id: work.subcategoryId, name: work.subcategoryName, categoryId: work.categoryId }]
+      subcategoryIndex = 0
+    }
+    
+    const originalCoverFileId = work._originalCoverImage || work.coverImage || ''
+    const originalImageFileIds = work._originalImages || work.images || []
+    
+    console.log('原始图片 IDs:', originalImageFileIds)
+    
+    this.convertImageFileIdsToUrls(originalImageFileIds).then(displayImages => {
+      console.log('转换后的图片 URLs:', displayImages)
       
       this.setData({
         showModal: true,
@@ -346,18 +422,43 @@ Page({
           title: work.title,
           coverUrl: work.coverUrl || '',
           coverFileId: originalCoverFileId,
-          images: work.images || [],
+          images: displayImages,
           imageFileIds: originalImageFileIds,
           usageType: work.usageType,
-          usageTypeIndex: usageTypeIndex,
           description: work.description || '',
           order: work.order,
-          isFeatured: work.isFeatured || false
+          isFeatured: work.isFeatured || false,
+          hidden: work.hidden || false
         },
         currentSubcategoryNames: currentSubcategories.map(sub => sub.name),
         _currentSubcategories: currentSubcategories
+      }, () => {
+        console.log('弹窗已打开, showModal:', this.data.showModal)
       })
+    }).catch(err => {
+      console.error('编辑作品失败:', err)
+      wx.showToast({ title: '加载失败', icon: 'none' })
+    })
+  },
+
+  onDeleteWorkFromModal: function () {
+    if (!this.data.editId) {
+      wx.showToast({ title: '请先保存作品', icon: 'none' })
+      return
     }
+    
+    const workId = this.data.editId
+    
+    wx.showModal({
+      title: '确认删除',
+      content: '删除后无法恢复，确定要删除吗？',
+      success: (res) => {
+        if (res.confirm) {
+          this.onCloseModal()
+          this.deleteWork(workId)
+        }
+      }
+    })
   },
 
   onDeleteWork: function (e) {
@@ -375,6 +476,8 @@ Page({
   },
 
   deleteWork: function (id) {
+    console.log('删除作品 ID:', id)
+    
     wx.showLoading({ title: '删除中...' })
     
     wx.cloud.callFunction({
@@ -384,18 +487,81 @@ Page({
         id: id
       }
     }).then(res => {
+      console.log('删除结果:', res)
       wx.hideLoading()
       if (res.result && res.result.success) {
         wx.showToast({ title: '删除成功', icon: 'success' })
-        this.loadWorks()
+        this.loadCurrentFilteredWorks()
       } else {
-        wx.showToast({ title: res.result.message || '删除失败', icon: 'error' })
+        const errorMsg = res.result ? res.result.message : '未知错误'
+        console.error('删除失败详情:', res)
+        wx.showToast({ title: '删除失败: ' + errorMsg, icon: 'none', duration: 3000 })
       }
     }).catch(err => {
       wx.hideLoading()
-      wx.showToast({ title: '删除失败', icon: 'error' })
       console.error('删除作品失败:', err)
+      wx.showToast({ title: '删除失败: ' + (err.message || '未知错误'), icon: 'none', duration: 3000 })
     })
+  },
+
+  onFormCategoryChange: function (e) {
+    const index = parseInt(e.detail.value)
+    const category = this.data.categories[index]
+    
+    const currentSubcategories = this.data.subcategories.filter(
+      sub => String(sub.categoryId) === String(category._id)
+    )
+    const currentSubcategoryNames = currentSubcategories.map(sub => sub.name)
+    
+    this.setData({
+      'formData.categoryId': category._id,
+      'formData.categoryName': category.name,
+      'formData.categoryIndex': index,
+      'formData.subcategoryId': '',
+      'formData.subcategoryName': '',
+      'formData.subcategoryIndex': -1,
+      currentSubcategoryNames: currentSubcategoryNames,
+      _currentSubcategories: currentSubcategories,
+      showSubcategoryPicker: currentSubcategories.length > 0,
+      hasChanges: true
+    })
+    
+    this.setData({ 'formData.order': 1 })
+  },
+
+  onFormSubcategoryChange: function (e) {
+    const index = parseInt(e.detail.value)
+    const currentSubcategories = this.data._currentSubcategories || []
+    
+    if (index < 0 || index >= currentSubcategories.length) {
+      return
+    }
+    
+    const subcategory = currentSubcategories[index]
+    
+    this.setData({
+      'formData.subcategoryId': subcategory._id,
+      'formData.subcategoryName': subcategory.name,
+      'formData.subcategoryIndex': index,
+      hasChanges: true
+    })
+    
+    const db = wx.cloud.database()
+    db.collection('works')
+      .where({ subcategoryId: subcategory._id })
+      .orderBy('order', 'desc')
+      .limit(1)
+      .get()
+      .then(res => {
+        let nextOrder = 1
+        if (res.data && res.data.length > 0 && res.data[0].order) {
+          nextOrder = res.data[0].order + 1
+        }
+        this.setData({ 'formData.order': nextOrder })
+      })
+      .catch(err => {
+        console.error('获取最大order失败:', err)
+      })
   },
 
   onCategoryPickerChange: function (e) {
@@ -453,32 +619,56 @@ Page({
       'formData.subcategoryName': subcategory.name,
       'formData.subcategoryIndex': index
     })
+    
+    if (!this.data.editMode) {
+      const db = wx.cloud.database()
+      db.collection('works')
+        .where({ subcategoryId: subcategory._id })
+        .orderBy('order', 'desc')
+        .limit(1)
+        .get()
+        .then(res => {
+          let nextOrder = 1
+          if (res.data && res.data.length > 0 && res.data[0].order) {
+            nextOrder = res.data[0].order + 1
+          }
+          
+          this.setData({
+            'formData.order': nextOrder
+          })
+        })
+        .catch(err => {
+          console.error('获取最大order失败:', err)
+        })
+    }
   },
 
   onTitleInput: function (e) {
     this.setData({
-      'formData.title': e.detail.value
+      'formData.title': e.detail.value,
+      hasChanges: true
     })
   },
 
   onDescriptionInput: function (e) {
     this.setData({
-      'formData.description': e.detail.value
+      'formData.description': e.detail.value,
+      hasChanges: true
     })
   },
 
   onOrderInput: function (e) {
     const value = e.detail.value
     this.setData({
-      'formData.order': value === '' ? '' : (parseInt(value) || 1)
+      'formData.order': value === '' ? '' : (parseInt(value) || 1),
+      hasChanges: true
     })
   },
 
-  onUsageTypeChange: function (e) {
-    const index = parseInt(e.detail.value)
+  onUsageTypeInput: function (e) {
     this.setData({
-      'formData.usageType': this.data.usageTypes[index],
-      'formData.usageTypeIndex': index
+      'formData.usageType': e.detail.value,
+      hasChanges: true
     })
   },
 
@@ -519,13 +709,47 @@ Page({
     const images = this.data.formData.images
     const imageFileIds = this.data.formData.imageFileIds
     
+    const isDeletingCover = index === 0
+    
     images.splice(index, 1)
     imageFileIds.splice(index, 1)
     
+    if (isDeletingCover && imageFileIds.length > 0) {
+      wx.showToast({ title: '已自动将下一张图片设为封面', icon: 'none' })
+    }
+    
     this.setData({
       'formData.images': images,
-      'formData.imageFileIds': imageFileIds
+      'formData.imageFileIds': imageFileIds,
+      hasChanges: true
     })
+  },
+
+  onImageTap: function (e) {
+    const index = e.currentTarget.dataset.index
+    
+    if (index === 0) {
+      wx.showToast({ title: '已是封面图片', icon: 'none' })
+      return
+    }
+    
+    const images = this.data.formData.images
+    const imageFileIds = this.data.formData.imageFileIds
+    
+    const clickedImage = images.splice(index, 1)[0]
+    const clickedFileId = imageFileIds.splice(index, 1)[0]
+    
+    images.unshift(clickedImage)
+    imageFileIds.unshift(clickedFileId)
+    
+    this.setData({
+      'formData.images': images,
+      'formData.imageFileIds': imageFileIds,
+      'formData.coverFileId': imageFileIds[0],
+      hasChanges: true
+    })
+    
+    wx.showToast({ title: '已设为封面', icon: 'success' })
   },
 
   uploadImage: function (filePath, type) {
@@ -542,18 +766,44 @@ Page({
         if (type === 'cover') {
           this.setData({
             'formData.coverUrl': res.fileID,
-            'formData.coverFileId': res.fileID
+            'formData.coverFileId': res.fileID,
+            hasChanges: true
           })
         } else {
           const images = this.data.formData.images
           const imageFileIds = this.data.formData.imageFileIds
-          images.push(res.fileID)
+          
           imageFileIds.push(res.fileID)
           
-          this.setData({
-            'formData.images': images,
-            'formData.imageFileIds': imageFileIds
+          wx.cloud.getTempFileURL({
+            fileList: [res.fileID]
+          }).then(urlRes => {
+            if (urlRes.fileList && urlRes.fileList[0] && urlRes.fileList[0].status === 0) {
+              images.push(urlRes.fileList[0].tempFileURL)
+            } else {
+              images.push(res.fileID)
+            }
+            
+            this.setData({
+              'formData.images': images,
+              'formData.imageFileIds': imageFileIds,
+              hasChanges: true
+            })
+            
+            wx.showToast({ title: '上传成功', icon: 'success' })
+          }).catch(err => {
+            console.error('获取临时URL失败:', err)
+            images.push(res.fileID)
+            
+            this.setData({
+              'formData.images': images,
+              'formData.imageFileIds': imageFileIds,
+              hasChanges: true
+            })
+            
+            wx.showToast({ title: '上传成功', icon: 'success' })
           })
+          return
         }
         
         wx.showToast({ title: '上传成功', icon: 'success' })
@@ -567,9 +817,14 @@ Page({
   },
 
   onSaveWork: function () {
+    if (!this.data.hasChanges) {
+      wx.showToast({ title: '没有修改内容', icon: 'none' })
+      return
+    }
+    
     const { 
       categoryId, categoryName, subcategoryId, subcategoryName,
-      title, coverFileId, imageFileIds, usageType, description, order, isFeatured 
+      title, coverFileId, imageFileIds, usageType, description, order, isFeatured, hidden 
     } = this.data.formData
     
     if (!categoryId) {
@@ -587,26 +842,35 @@ Page({
       return
     }
     
-    if (!coverFileId) {
-      wx.showToast({ title: '请上传封面图片', icon: 'none' })
+    if (imageFileIds.length === 0) {
+      wx.showToast({ title: '请上传作品图片', icon: 'none' })
+      return
+    }
+    
+    if (!order || order < 1) {
+      wx.showToast({ title: '请输入有效的排序号', icon: 'none' })
       return
     }
     
     wx.showLoading({ title: '保存中...' })
     
     const db = wx.cloud.database()
+    
+    const finalCoverFileId = coverFileId || imageFileIds[0]
+    
     const data = {
       categoryId: categoryId,
       categoryName: categoryName,
       subcategoryId: subcategoryId,
       subcategoryName: subcategoryName,
       title: title,
-      coverImage: coverFileId,
+      coverImage: finalCoverFileId,
       images: imageFileIds,
       usageType: usageType,
       description: description,
       order: order,
       isFeatured: isFeatured,
+      hidden: hidden || false,
       enabled: true
     }
     
@@ -617,7 +881,7 @@ Page({
         wx.hideLoading()
         wx.showToast({ title: '保存成功', icon: 'success' })
         this.onCloseModal()
-        this.loadWorks()
+        this.loadCurrentFilteredWorks()
       }).catch(err => {
         wx.hideLoading()
         wx.showToast({ title: '保存失败', icon: 'error' })
@@ -629,14 +893,48 @@ Page({
       }).then(() => {
         wx.hideLoading()
         wx.showToast({ title: '添加成功', icon: 'success' })
+        
+        const categoryIndex = this.data.categories.findIndex(
+          cat => String(cat._id) === String(categoryId)
+        )
+        
+        this.setData({
+          selectedCategoryIndex: categoryIndex,
+          selectedCategoryName: categoryName,
+          selectedSubcategoryIndex: -1,
+          selectedSubcategoryName: '全部子类'
+        })
+        
         this.onCloseModal()
-        this.loadWorks()
+        
+        this.loadSubcategories(categoryId).then(() => {
+          this.loadWorks(categoryId)
+        })
       }).catch(err => {
         wx.hideLoading()
         wx.showToast({ title: '添加失败', icon: 'error' })
         console.error('添加作品失败:', err)
       })
     }
+  },
+
+  loadCurrentFilteredWorks: function () {
+    const categoryId = this.data.selectedCategoryIndex === -1 ? null : this.data.categories[this.data.selectedCategoryIndex]._id
+    const subcategoryId = this.data.selectedSubcategoryIndex === -1 ? null : this.data.subcategories[this.data.selectedSubcategoryIndex]._id
+    
+    const loadSubcategoriesPromise = new Promise((resolve) => {
+      if (categoryId) {
+        this.loadSubcategories(categoryId)
+        setTimeout(resolve, 500)
+      } else {
+        this.loadSubcategories()
+        setTimeout(resolve, 500)
+      }
+    })
+    
+    loadSubcategoriesPromise.then(() => {
+      this.loadWorks(categoryId, subcategoryId)
+    })
   },
 
   onCloseModal: function () {
@@ -657,12 +955,20 @@ Page({
         images: [],
         imageFileIds: [],
         usageType: '',
-        usageTypeIndex: -1,
         description: '',
         order: 1,
-        isFeatured: false
+        isFeatured: false,
+        hidden: false
       },
       currentSubcategoryNames: []
     })
-  }
+  },
+
+  onToggleHiddenInForm: function () {
+    const currentValue = this.data.formData.hidden
+    this.setData({
+      'formData.hidden': !currentValue,
+      hasChanges: true
+    })
+  },
 })

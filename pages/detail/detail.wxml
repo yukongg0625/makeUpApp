@@ -8,7 +8,7 @@
       current="{{currentImageIndex}}"
       bindchange="onImageChange"
     >
-      <swiper-item wx:for="{{images}}" wx:key="*this">
+      <swiper-item wx:for="{{images}}" wx:key="index">
         <image 
           class="detail-image" 
           src="{{item}}" 
@@ -16,9 +16,16 @@
           lazy-load="{{true}}"
           bindtap="onPreviewImage"
           data-index="{{index}}"
+          binderror="onImageError"
+          bindload="onImageLoad"
         />
       </swiper-item>
     </swiper>
+    
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{images.length === 0}}">
+      <text>暂无图片</text>
+    </view>
     
     <!-- 图片计数 -->
     <view class="image-counter" wx:if="{{images.length > 1}}">
@@ -46,10 +53,10 @@
     </view>
   </view>
 
-  <!-- 右侧固定联系店家按钮 -->
+  <!-- 右侧固定联系我们按钮 -->
   <view class="contact-shop-btn" bindtap="onContactShop">
     <text class="contact-icon">💬</text>
-    <text>联系店家</text>
+    <text>联系我们</text>
   </view>
 
   <!-- 自定义底部导航 -->

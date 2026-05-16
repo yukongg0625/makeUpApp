@@ -1,0 +1,9 @@
+{
+  "name": "setFilePermissions",
+  "version": "1.0.0",
+  "description": "Set cloud storage file permissions for public read access",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

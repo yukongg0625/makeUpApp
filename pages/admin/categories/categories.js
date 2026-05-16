@@ -10,7 +10,8 @@ Page({
       name: '',
       coverImage: '',
       coverFileId: '',
-      order: 1
+      order: 1,
+      hidden: false
     }
   },
 
@@ -18,12 +19,16 @@ Page({
     this.loadCategories()
   },
 
+  onShow: function () {
+    this.loadCategories()
+  },
+
   loadCategories: function () {
     this.setData({ loading: true })
-    
+
     const db = wx.cloud.database()
     const _ = db.command
-    
+
     db.collection('categories')
       .where({
         _id: _.exists(true)
@@ -35,7 +40,7 @@ Page({
           ...item,
           _originalCoverImage: item.coverImage
         }))
-        
+
         this.convertCloudStorageUrls(categories, 'coverImage').then(convertedCategories => {
           this.setData({
             categories: convertedCategories,
@@ -49,33 +54,37 @@ Page({
       })
   },
 
-  // 转换云存储 File ID 为临时 URL
-  convertCloudStorageUrls: function(data, fieldName) {
+  convertCloudStorageUrls: function (data, fieldName) {
     const fileIds = data
       .filter(item => item[fieldName] && item[fieldName].startsWith('cloud://'))
       .map(item => item[fieldName])
-    
+
     if (fileIds.length === 0) {
       return Promise.resolve(data)
     }
-    
-    return wx.cloud.getTempFileURL({
-      fileList: fileIds
+
+    return wx.cloud.callFunction({
+      name: 'getImageUrl',
+      data: {
+        action: 'getTempFileURL',
+        fileList: fileIds
+      }
     }).then(res => {
-      const urlMap = {}
-      res.fileList.forEach(file => {
-        urlMap[file.fileID] = file.tempFileURL
-      })
-      
-      return data.map(item => {
-        if (item[fieldName] && item[fieldName].startsWith('cloud://')) {
-          return {
-            ...item,
-            [fieldName]: urlMap[item[fieldName]] || item[fieldName]
+      if (res.result && res.result.success) {
+        const urlMap = res.result.urlMap || {}
+        return data.map(item => {
+          if (item[fieldName] && item[fieldName].startsWith('cloud://')) {
+            return {
+              ...item,
+              [fieldName]: urlMap[item[fieldName]] || item[fieldName]
+            }
           }
-        }
-        return item
-      })
+          return item
+        })
+      } else {
+        console.error('云函数获取 URL 失败:', res.result?.message)
+        return data
+      }
     }).catch(err => {
       console.error('转换云存储 URL 失败:', err)
       return data
@@ -90,7 +99,8 @@ Page({
       formData: {
         name: '',
         coverImage: '',
-        order: this.data.categories.length + 1
+        order: this.data.categories.length + 1,
+        hidden: false
       }
     })
   },
@@ -98,7 +108,7 @@ Page({
   onEditCategory: function (e) {
     const id = e.currentTarget.dataset.id
     const category = this.data.categories.find(item => item._id === id)
-    
+
     if (category) {
       this.setData({
         showModal: true,
@@ -108,7 +118,8 @@ Page({
           name: category.name,
           coverImage: category.coverImage,
           coverFileId: category._originalCoverImage || category.coverImage,
-          order: category.order
+          order: category.order,
+          hidden: category.hidden || false
         }
       })
     }
@@ -116,10 +127,11 @@ Page({
 
   onDeleteCategory: function (e) {
     const id = e.currentTarget.dataset.id
-    
+    const category = this.data.categories.find(item => item._id === id)
+
     wx.showModal({
       title: '确认删除',
-      content: '删除后无法恢复，确定要删除吗？',
+      content: `删除"${category ? category.name : '影集'}"将同时删除其下所有子类、作品和图片，确定要删除吗？`,
       success: (res) => {
         if (res.confirm) {
           this.deleteCategory(id)
@@ -130,12 +142,12 @@ Page({
 
   deleteCategory: function (id) {
     wx.showLoading({ title: '删除中...' })
-    
+
     wx.cloud.callFunction({
-      name: 'deleteDocument',
+      name: 'cascadeDelete',
       data: {
-        collection: 'categories',
-        id: id
+        action: 'deleteCategory',
+        categoryId: id
       }
     }).then(res => {
       wx.hideLoading()
@@ -152,6 +164,13 @@ Page({
     })
   },
 
+  onToggleHidden: function () {
+    const currentValue = this.data.formData.hidden
+    this.setData({
+      'formData.hidden': !currentValue
+    })
+  },
+
   onNameInput: function (e) {
     this.setData({
       'formData.name': e.detail.value
@@ -160,7 +179,6 @@ Page({
 
   onOrderInput: function (e) {
     const value = e.detail.value
-    // 允许空值，让用户可以删除内容
     this.setData({
       'formData.order': value === '' ? '' : (parseInt(value) || 1)
     })
@@ -180,12 +198,17 @@ Page({
 
   uploadImage: function (filePath) {
     wx.showLoading({ title: '上传中...' })
-    
+
     const fileName = 'categories/' + Date.now() + '.jpg'
-    
+
     wx.cloud.uploadFile({
       cloudPath: fileName,
       filePath: filePath,
+      config: {
+        header: {
+          'x-cos-acl': 'public-read'
+        }
+      },
       success: (res) => {
         wx.hideLoading()
         this.setData({
@@ -203,29 +226,67 @@ Page({
   },
 
   onSaveCategory: function () {
-    const { name, coverImage, coverFileId, order } = this.data.formData
-    
+    const { name, coverImage, coverFileId, order, hidden } = this.data.formData
+
     if (!name) {
       wx.showToast({ title: '请输入影集名称', icon: 'none' })
       return
     }
-    
-    // 保存时使用原始 File ID，而不是临时 URL
-    const saveCoverImage = coverFileId || (coverImage.startsWith('cloud://') ? coverImage : '')
-    
-    wx.showLoading({ title: '保存中...' })
-    
+
     const db = wx.cloud.database()
-    
+    const checkPromise = this.data.editMode
+      ? db.collection('categories')
+        .where({
+          name: name,
+          _id: db.command.neq(this.data.editId)
+        })
+        .get()
+      : db.collection('categories').where({ name: name }).get()
+
+    checkPromise.then(res => {
+      if (res.data.length > 0) {
+        wx.showToast({ title: '影集名称已存在', icon: 'none' })
+        return
+      }
+
+      this.saveCategory(name, coverImage, coverFileId, order, hidden)
+    }).catch(err => {
+      console.error('检查名称失败:', err)
+      wx.showToast({ title: '检查失败', icon: 'none' })
+    })
+  },
+
+  saveCategory: function (name, coverImage, coverFileId, order, hidden) {
+    const saveCoverImage = coverFileId || (coverImage.startsWith('cloud://') ? coverImage : '')
+
+    wx.showLoading({ title: '保存中...' })
+
+    const db = wx.cloud.database()
+
     if (this.data.editMode) {
-      // 编辑模式
+      // 获取旧封面图片 ID
+      const oldCategory = this.data.categories.find(item => item._id === this.data.editId)
+      const oldCoverImage = oldCategory ? oldCategory._originalCoverImage : null
+
       db.collection('categories').doc(this.data.editId).update({
         data: {
           name: name,
           coverImage: saveCoverImage,
-          order: order
+          order: order,
+          hidden: hidden
         }
       }).then(() => {
+        // 删除旧封面图片
+        if (oldCoverImage && oldCoverImage !== saveCoverImage && oldCoverImage.startsWith('cloud://')) {
+          wx.cloud.deleteFile({
+            fileList: [oldCoverImage]
+          }).then(res => {
+            console.log('删除旧封面图片成功:', res)
+          }).catch(err => {
+            console.error('删除旧封面图片失败:', err)
+          })
+        }
+
         wx.hideLoading()
         wx.showToast({ title: '保存成功', icon: 'success' })
         this.onCloseModal()
@@ -236,12 +297,12 @@ Page({
         console.error('更新影集失败:', err)
       })
     } else {
-      // 添加模式
       db.collection('categories').add({
         data: {
           name: name,
           coverImage: saveCoverImage,
           order: order,
+          hidden: hidden,
           enabled: true
         }
       }).then(() => {
@@ -265,7 +326,8 @@ Page({
       formData: {
         name: '',
         coverImage: '',
-        order: 1
+        order: 1,
+        hidden: false
       }
     })
   }

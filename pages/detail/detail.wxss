@@ -91,7 +91,7 @@
   line-height: 1.8;
 }
 
-/* 右侧固定联系店家按钮 */
+/* 右侧固定联系我们按钮 */
 .contact-shop-btn {
   position: fixed;
   right: 30rpx;

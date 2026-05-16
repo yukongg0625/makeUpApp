@@ -1,0 +1,9 @@
+{
+  "name": "deleteFiles",
+  "version": "1.0.0",
+  "description": "通过云函数删除文件（管理员权限）",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

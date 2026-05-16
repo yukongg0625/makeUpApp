@@ -20,9 +20,14 @@
 
   <!-- 子类列表 -->
   <view class="list">
-    <view class="list-item" wx:for="{{subcategories}}" wx:key="_id">
+    <view class="list-item {{item.hidden ? 'hidden-item' : ''}}" wx:for="{{subcategories}}" wx:key="_id">
       <view class="item-info">
-        <text class="item-name">{{item.name}}</text>
+        <view class="item-name-row">
+          <text class="item-name">{{item.name}}</text>
+          <view class="status-tag {{item.hidden ? 'hidden' : 'visible'}}">
+            <text>{{item.hidden ? '已隐藏' : '可见'}}</text>
+          </view>
+        </view>
         <text class="item-category">所属影集：{{item.categoryName}}</text>
         <text class="item-order">排序：{{item.order}}</text>
       </view>
@@ -53,7 +58,7 @@
     </view>
     <view class="modal-body">
       <view class="form-item">
-        <text class="form-label">所属影集</text>
+        <text class="form-label">所属影集<text class="required">*</text></text>
         <picker mode="selector" range="{{categoryNames}}" value="{{formData.categoryIndex}}" bindchange="onCategoryPickerChange">
           <view class="picker-input">
             <text>{{formData.categoryName || '选择影集'}}</text>
@@ -62,12 +67,18 @@
         </picker>
       </view>
       <view class="form-item">
-        <text class="form-label">子类名称</text>
+        <text class="form-label">子类名称<text class="required">*</text></text>
         <input class="form-input" value="{{formData.name}}" bindinput="onNameInput" placeholder="请输入子类名称" />
       </view>
       <view class="form-item">
         <text class="form-label">排序</text>
         <input class="form-input" type="number" value="{{formData.order}}" bindinput="onOrderInput" placeholder="请输入排序号" />
+      </view>
+      <view class="form-item">
+        <view class="toggle-btn {{formData.hidden ? 'active' : ''}}" bindtap="onToggleHiddenInForm">
+          <text>{{formData.hidden ? '显示子类' : '隐藏子类'}}</text>
+        </view>
+        <text class="form-hint">{{formData.hidden ? '选择显示子类，用户可见' : '隐藏后该子类将对用户不可见'}}</text>
       </view>
     </view>
     <view class="modal-footer">

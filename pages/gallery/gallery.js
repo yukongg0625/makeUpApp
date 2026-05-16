@@ -33,6 +33,13 @@ Page({
     this.loadWorks()
   },
 
+  onShow: function () {
+    this.loadCategories()
+    this.loadSubcategories()
+    this.setData({ skip: 0, hasMore: true })
+    this.loadWorks()
+  },
+
   loadCategories() {
     const categories = app.globalData.categories || []
     this.setData({ categories })

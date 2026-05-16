@@ -1,0 +1,31 @@
+<view class="container">
+  <!-- 标题 -->
+  <view class="page-header">
+    <text class="header-title">美丽瞬间</text>
+    <text class="header-subtitle">记录每一位顾客的美丽时刻</text>
+  </view>
+
+  <!-- 作品网格 -->
+  <view class="photo-grid">
+    <view 
+      class="photo-item" 
+      wx:for="{{photos}}" 
+      wx:key="_id"
+      bindtap="onPhotoTap"
+      data-id="{{item._id}}"
+    >
+      <image class="photo-image" src="{{item.imageUrl}}" mode="aspectFill" lazy-load="{{true}}" />
+      <view class="photo-overlay" wx:if="{{item.description}}">
+        <text class="photo-desc">{{item.description}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading && photos.length === 0}}">加载中...</view>
+  
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{!loading && photos.length === 0}}">
+    <text>暂无照片</text>
+  </view>
+</view>

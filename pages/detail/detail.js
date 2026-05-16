@@ -9,6 +9,9 @@ Page({
       usageType: '',
       categoryName: '',
       subcategoryName: ''
+    },
+    contactInfo: {
+      name: '畔黛造型'
     }
   },
 
@@ -17,6 +20,23 @@ Page({
       this.setData({ workId: options.id })
       this.loadWorkDetail(options.id)
     }
+    this.loadContactInfo()
+  },
+
+  loadContactInfo: function () {
+    const db = wx.cloud.database()
+    db.collection('contactInfo').get().then(res => {
+      if (res.data.length > 0) {
+        const info = res.data[0]
+        this.setData({
+          contactInfo: {
+            name: info.name || '畔黛造型'
+          }
+        })
+      }
+    }).catch(err => {
+      console.error('加载联系信息失败:', err)
+    })
   },
 
   loadWorkDetail(workId) {
@@ -25,15 +45,34 @@ Page({
     })
 
     const db = wx.cloud.database()
+    
     db.collection('works').doc(workId).get()
-      .then(res => {
-        const work = res.data
-        const images = work.images || []
+      .then(workRes => {
+        const work = workRes.data
+        const imageFileIds = work.images || []
         
-        // 转换云存储 File ID 为临时 URL
-        this.convertCloudStorageUrls(images).then(convertedImages => {
+        console.log('作品图片数据:', imageFileIds)
+        
+        this.convertCloudStorageUrls(imageFileIds).then(convertedImages => {
+          console.log('转换后的图片URL:', convertedImages)
+          
+          const validImages = convertedImages.filter(url => url && typeof url === 'string' && url.length > 0)
+          
           this.setData({
-            images: convertedImages,
+            images: validImages,
+            workInfo: {
+              title: work.title || '作品详情',
+              description: work.description || '',
+              usageType: work.usageType || '',
+              categoryName: work.categoryName || '',
+              subcategoryName: work.subcategoryName || ''
+            }
+          })
+          wx.hideLoading()
+        }).catch(err => {
+          console.error('转换图片URL失败:', err)
+          this.setData({
+            images: [],
             workInfo: {
               title: work.title || '作品详情',
               description: work.description || '',
@@ -52,20 +91,29 @@ Page({
       })
   },
 
+  onImageError: function(e) {
+    console.error('图片加载失败:', e.detail)
+  },
+
   convertCloudStorageUrls: function(fileIds) {
+    if (!fileIds || !Array.isArray(fileIds)) {
+      return Promise.resolve([])
+    }
+    
     const cloudFileIds = fileIds.filter(id => id && id.startsWith('cloud://'))
     
     if (cloudFileIds.length === 0) {
       return Promise.resolve(fileIds)
     }
     
-    return wx.cloud.getTempFileURL({
-      fileList: cloudFileIds
+    return wx.cloud.callFunction({
+      name: 'getImageUrl',
+      data: {
+        action: 'getTempFileURL',
+        fileList: cloudFileIds
+      }
     }).then(res => {
-      const urlMap = {}
-      res.fileList.forEach(file => {
-        urlMap[file.fileID] = file.tempFileURL
-      })
+      const urlMap = res.result.urlMap || {}
       
       return fileIds.map(id => {
         if (id && id.startsWith('cloud://')) {
@@ -119,16 +167,30 @@ Page({
   },
 
   onContactShop() {
-    // 模拟跳转到微信聊天
+    const companyName = this.data.contactInfo.name || '店家'
+    const workTitle = this.data.workInfo.title || '该作品'
+    
     wx.showModal({
-      title: '联系店家',
-      content: '将跳转到微信聊天，与畔黛造型客服联系',
-      success: function (res) {
+      title: '联系我们',
+      content: `将跳转到微信聊天，与${companyName}客服联系并发送${workTitle}的信息`,
+      success: (res) => {
         if (res.confirm) {
-          wx.showToast({
-            title: '正在打开微信聊天...',
-            icon: 'loading',
-            duration: 2000
+          wx.openCustomerServiceChat({
+            sendMessage: {
+              title: workTitle,
+              content: `我对「${workTitle}」感兴趣，想了解更多详情`,
+              link: `/pages/detail/detail?id=${this.data.workId}`
+            },
+            success: () => {
+              console.log('打开客服聊天成功')
+            },
+            fail: (err) => {
+              console.error('打开客服聊天失败:', err)
+              wx.showToast({
+                title: '无法打开客服聊天',
+                icon: 'error'
+              })
+            }
           })
         }
       }

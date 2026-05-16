@@ -1,0 +1,71 @@
+/* pages/admin/contact/contact.wxss */
+.container {
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  padding-bottom: 100rpx;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #fff;
+  padding: 30rpx;
+  border-bottom: 1rpx solid #eee;
+}
+
+.title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.form-content {
+  padding: 30rpx;
+}
+
+.form-item {
+  background-color: #fff;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  border-radius: 12rpx;
+}
+
+.form-label {
+  display: block;
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 16rpx;
+}
+
+.form-input {
+  width: 100%;
+  font-size: 32rpx;
+  color: #333;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid #eee;
+}
+
+.form-textarea {
+  width: 100%;
+  height: 150rpx;
+  font-size: 32rpx;
+  color: #333;
+  padding: 16rpx;
+  border: 1rpx solid #eee;
+  border-radius: 8rpx;
+  box-sizing: border-box;
+}
+
+.btn-area {
+  padding: 30rpx;
+}
+
+.save-btn {
+  background-color: #d4a574;
+  color: #fff;
+  padding: 28rpx;
+  border-radius: 30rpx;
+  font-size: 32rpx;
+  text-align: center;
+}

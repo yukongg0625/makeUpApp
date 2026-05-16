@@ -3,8 +3,13 @@
   <!-- 顶部操作栏 -->
   <view class="header">
     <text class="title">作品管理</text>
-    <view class="add-btn" bindtap="onAddWork">
-      <text>+ 添加作品</text>
+    <view class="header-right">
+      <view class="add-btn {{selectedCategoryIndex === -1 || selectedSubcategoryIndex === -1 ? 'disabled' : ''}}" bindtap="onAddWork">
+        <text>+ 添加作品</text>
+      </view>
+      <view class="current-path" wx:if="{{selectedCategoryName !== '全部影集' || selectedSubcategoryName !== '全部子类'}}">
+        <text class="path-text">当前：{{selectedCategoryName !== '全部影集' ? selectedCategoryName : '全部'}} / {{selectedSubcategoryName !== '全部子类' ? selectedSubcategoryName : '全部'}}</text>
+      </view>
     </view>
   </view>
 
@@ -24,27 +29,28 @@
     </picker>
   </view>
 
-  <!-- 作品列表 -->
-  <view class="list">
-    <view class="list-item" wx:for="{{works}}" wx:key="_id">
-      <view class="item-cover">
-        <image src="{{item.coverUrl}}" mode="aspectFill" />
-      </view>
-      <view class="item-info">
-        <text class="item-title">{{item.title}}</text>
-        <text class="item-category">{{item.categoryName}} - {{item.subcategoryName}}</text>
-        <text class="item-type">{{item.usageType}}</text>
-      </view>
-      <view class="item-actions">
-        <view class="action-btn edit" bindtap="onEditWork" data-id="{{item._id}}">编辑</view>
-        <view class="action-btn delete" bindtap="onDeleteWork" data-id="{{item._id}}">删除</view>
+  <!-- 作品网格 -->
+  <view class="works-grid">
+    <view class="works-header">
+      <text class="works-count">共 {{works.length}} 个作品</text>
+    </view>
+    <view class="grid-container">
+      <view class="grid-item" wx:for="{{works}}" wx:key="_id">
+        <view class="work-cover" bindtap="onWorkTap" data-id="{{item._id}}">
+          <image src="{{item.coverUrl}}" mode="aspectFill" />
+          <view class="cover-badge" wx:if="{{item.isCover}}">封面</view>
+          <view class="work-hidden-badge" wx:if="{{item.hidden}}">已隐藏</view>
+        </view>
+        <view class="work-info">
+          <text class="work-title">{{item.title}}</text>
+        </view>
       </view>
     </view>
   </view>
 
   <!-- 空状态 -->
-  <view class="empty" wx:if="{{works.length === 0}}">
-    <text>暂无作品，请点击右上角添加</text>
+  <view class="empty" wx:if="{{works.length === 0 && !loading}}">
+    <text>暂无作品，请先选择影集和子类后添加</text>
   </view>
 
   <!-- 加载状态 -->
@@ -53,85 +59,162 @@
   </view>
 </view>
 
-<!-- 编辑弹窗 -->
+<!-- 照片操作弹窗 -->
+<view class="modal" wx:if="{{showPhotoModal}}" bindtap="onClosePhotoModal">
+  <view class="photo-modal-content" catchtap="onCatchTap">
+    <view class="modal-header-simple">
+      <text class="modal-title">{{selectedWork.title}}</text>
+      <text class="modal-close" bindtap="onClosePhotoModal">×</text>
+    </view>
+    <view class="photo-list">
+      <view class="photo-item" wx:for="{{currentImages}}" wx:key="_id">
+        <image class="photo-image" src="{{item.url}}" mode="aspectFit" />
+        <view class="photo-item-info">
+          <view class="photo-item-title-row">
+            <text class="photo-item-title">{{item.title || '未命名'}}</text>
+            <view class="status-tag {{item.hidden ? 'hidden' : 'visible'}}">
+              <text>{{item.hidden ? '已隐藏' : '可见'}}</text>
+            </view>
+          </view>
+          <text class="photo-item-type">{{item.usageType || '未设置类型'}}</text>
+        </view>
+        <view class="photo-item-actions">
+          <view class="photo-action-btn small" bindtap="onSetAsCover" data-imageid="{{item._id}}">设为封面</view>
+          <view class="photo-action-btn edit small" bindtap="onEditImage" data-imageid="{{item._id}}">编辑</view>
+          <view class="photo-action-btn delete small" bindtap="onDeleteImage" data-imageid="{{item._id}}">删除</view>
+        </view>
+      </view>
+    </view>
+    
+    <view class="photo-modal-actions">
+      <view class="photo-action-btn edit" bindtap="onEditWork">编辑作品</view>
+      <view class="photo-action-btn delete" bindtap="onDeleteWork">删除作品</view>
+    </view>
+  </view>
+</view>
+
+<!-- 编辑图片弹窗 -->
+<view class="modal" wx:if="{{showImageModal}}" bindtap="onCloseImageModal">
+  <view class="modal-content" catchtap="onCatchTap">
+    <view class="modal-header">
+      <text class="modal-title">编辑图片</text>
+      <text class="modal-close" bindtap="onCloseImageModal">×</text>
+    </view>
+    <scroll-view class="modal-body" scroll-y="{{true}}">
+      <view class="form-item photo-preview">
+        <image wx:if="{{currentEditImage.url}}" src="{{currentEditImage.url}}" mode="aspectFit" />
+      </view>
+      <view class="form-item">
+        <text class="form-label">图片标题</text>
+        <input class="form-input" value="{{currentEditImage.title}}" bindinput="onImageTitleInput" placeholder="请输入图片标题" />
+      </view>
+      <view class="form-item">
+        <text class="form-label">用途类型</text>
+        <input class="form-input" value="{{currentEditImage.usageType}}" bindinput="onImageUsageTypeInput" placeholder="请输入用途类型" />
+      </view>
+      <view class="form-item">
+        <text class="form-label">图片描述</text>
+        <textarea class="form-textarea" value="{{currentEditImage.description}}" bindinput="onImageDescriptionInput" placeholder="请输入图片描述" />
+      </view>
+      <view class="form-item">
+        <view
+          class="featured-btn {{currentEditImage.isFeatured ? 'featured' : ''}}"
+          bindtap="onToggleImageFeatured"
+        >
+          <text>{{currentEditImage.isFeatured ? '移出精华' : '加入精华'}}</text>
+        </view>
+      </view>
+      <view class="form-item">
+        <view class="toggle-btn {{currentEditImage.hidden ? 'active' : ''}}" bindtap="onToggleImageHidden">
+          <text>{{currentEditImage.hidden ? '显示图片' : '隐藏图片'}}</text>
+        </view>
+        <text class="form-hint">{{currentEditImage.hidden ? '选择显示图片，用户可见' : '隐藏后该图片将对用户不可见'}}</text>
+      </view>
+    </scroll-view>
+    <view class="modal-footer">
+      <view class="modal-btn cancel" bindtap="onCloseImageModal">取消</view>
+      <view class="modal-btn confirm" bindtap="onSaveImage">保存</view>
+    </view>
+  </view>
+</view>
+
+<!-- 编辑作品弹窗 -->
 <view class="modal" wx:if="{{showModal}}">
   <view class="modal-content">
     <view class="modal-header">
       <text class="modal-title">{{editMode ? '编辑作品' : '添加作品'}}</text>
+      <view class="modal-path" wx:if="{{formData.categoryName || formData.subcategoryName}}">
+        <text>所属：{{formData.categoryName || '未选择'}} / {{formData.subcategoryName || '未选择'}}</text>
+      </view>
       <text class="modal-close" bindtap="onCloseModal">×</text>
     </view>
     <scroll-view class="modal-body" scroll-y="{{true}}">
       <view class="form-item">
-        <text class="form-label">所属影集</text>
-        <picker mode="selector" range="{{categoryNames}}" value="{{formData.categoryIndex}}" bindchange="onCategoryPickerChange">
-          <view class="picker-input">
-            <text>{{formData.categoryName || '选择影集'}}</text>
-            <text class="arrow">▼</text>
+        <text class="form-label">所属影集<text class="required">*</text></text>
+        <picker mode="selector" range="{{categoryNames}}" value="{{formData.categoryIndex}}" bindchange="onFormCategoryChange" disabled="{{editMode}}">
+          <view class="picker {{editMode ? 'disabled' : ''}}">
+            <text>{{formData.categoryName || '请选择影集'}}</text>
+            <text class="arrow" wx:if="{{!editMode}}">▼</text>
+          </view>
+        </picker>
+      </view>
+      <view class="form-item" wx:if="{{showSubcategoryPicker}}">
+        <text class="form-label">所属子类<text class="required">*</text></text>
+        <picker mode="selector" range="{{currentSubcategoryNames}}" value="{{formData.subcategoryIndex}}" bindchange="onFormSubcategoryChange" disabled="{{editMode}}">
+          <view class="picker {{editMode ? 'disabled' : ''}}">
+            <text>{{formData.subcategoryName || '请选择子类'}}</text>
+            <text class="arrow" wx:if="{{!editMode}}">▼</text>
           </view>
         </picker>
       </view>
       <view class="form-item">
-        <text class="form-label">所属子类</text>
-        <picker wx:if="{{showSubcategoryPicker}}" mode="selector" range="{{currentSubcategoryNames}}" value="{{formData.subcategoryIndex}}" bindchange="onSubcategoryPickerChange">
-          <view class="picker-input">
-            <text>{{formData.subcategoryName || '选择子类'}}</text>
-            <text class="arrow">▼</text>
-          </view>
-        </picker>
-        <view wx:else class="picker-input disabled">
-          <text>请先选择影集</text>
-        </view>
-      </view>
-      <view class="form-item">
-        <text class="form-label">作品标题</text>
+        <text class="form-label">作品标题<text class="required">*</text></text>
         <input class="form-input" value="{{formData.title}}" bindinput="onTitleInput" placeholder="请输入作品标题" />
       </view>
       <view class="form-item">
-        <text class="form-label">封面图片</text>
-        <view class="upload-area" bindtap="onUploadCover">
-          <image wx:if="{{formData.coverUrl}}" src="{{formData.coverUrl}}" mode="aspectFill" />
-          <text wx:else>+ 选择图片</text>
-        </view>
+        <text class="form-label">使用类型</text>
+        <input class="form-input" value="{{formData.usageType}}" bindinput="onUsageTypeInput" placeholder="请输入使用类型" />
       </view>
       <view class="form-item">
-        <text class="form-label">作品图片（可多选）</text>
-        <view class="images-list">
-          <view class="image-item" wx:for="{{formData.images}}" wx:key="*this">
-            <image src="{{item}}" mode="aspectFill" />
-            <text class="image-delete" bindtap="onDeleteImage" data-index="{{index}}">×</text>
-          </view>
-          <view class="image-add" bindtap="onUploadImages">
-            <text>+ 添加图片</text>
-          </view>
-        </view>
+        <text class="form-label">描述</text>
+        <textarea class="form-textarea" value="{{formData.description}}" bindinput="onDescriptionInput" placeholder="请输入作品描述" maxlength="200" />
       </view>
       <view class="form-item">
-        <text class="form-label">用途类型</text>
-        <picker mode="selector" range="{{usageTypes}}" value="{{formData.usageTypeIndex}}" bindchange="onUsageTypeChange">
-          <view class="picker-input">
-            <text>{{formData.usageType || '选择类型'}}</text>
-            <text class="arrow">▼</text>
-          </view>
-        </picker>
-      </view>
-      <view class="form-item">
-        <text class="form-label">作品描述</text>
-        <textarea class="form-textarea" value="{{formData.description}}" bindinput="onDescriptionInput" placeholder="请输入作品描述" />
-      </view>
-      <view class="form-item">
-        <text class="form-label">排序</text>
+        <text class="form-label">排序<text class="required">*</text></text>
         <input class="form-input" type="number" value="{{formData.order}}" bindinput="onOrderInput" placeholder="请输入排序号" />
       </view>
       <view class="form-item">
-        <view class="checkbox-item">
-          <text>加入精华相册</text>
-          <switch checked="{{formData.isFeatured}}" bindchange="onFeaturedChange" />
+        <text class="form-label">显示状态</text>
+        <view class="toggle-btn {{formData.hidden ? 'active' : ''}}" bindtap="onToggleHiddenInForm">
+          <text>{{formData.hidden ? '显示作品' : '隐藏作品'}}</text>
+        </view>
+        <text class="form-hint">{{formData.hidden ? '选择显示作品，用户可见' : '隐藏后该作品将对用户不可见'}}</text>
+      </view>
+      
+      <!-- 图片上传区域 -->
+      <view class="form-item">
+        <text class="form-label">作品图片<text class="required">*</text></text>
+        <view class="images-upload-area">
+          <view class="upload-images-grid">
+            <view class="upload-image-item" wx:for="{{formData.images}}" wx:key="index" bindtap="onImageTap" data-index="{{index}}">
+              <image src="{{item}}" mode="aspectFill" />
+              <view class="upload-image-badge" wx:if="{{index === 0}}">
+                <text>封面</text>
+              </view>
+              <view class="upload-image-delete" catchtap="onDeleteImage" data-index="{{index}}">×</view>
+            </view>
+            <view class="upload-add-btn" bindtap="onUploadImages" wx:if="{{formData.images.length < 9}}">
+              <text>+ 添加图片</text>
+            </view>
+          </view>
+          <text class="upload-hint" wx:if="{{formData.images.length > 0}}">点击第一张图片可设为封面</text>
         </view>
       </view>
     </scroll-view>
     <view class="modal-footer">
       <view class="modal-btn cancel" bindtap="onCloseModal">取消</view>
-      <view class="modal-btn confirm" bindtap="onSaveWork">保存</view>
+      <view class="modal-btn delete-work {{editMode ? '' : 'hidden'}}" bindtap="onDeleteWorkFromModal">删除作品</view>
+      <view class="modal-btn confirm {{hasChanges ? '' : 'disabled'}}" bindtap="onSaveWork">保存</view>
     </view>
   </view>
 </view>

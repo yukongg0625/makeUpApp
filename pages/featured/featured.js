@@ -11,6 +11,15 @@ Page({
     this.loadFeaturedWorks()
   },
 
+  onShow: function () {
+    this.setData({
+      featuredWorks: [],
+      skip: 0,
+      hasMore: true
+    })
+    this.loadFeaturedWorks()
+  },
+
   loadFeaturedWorks() {
     if (this.data.loading) return
 
@@ -19,8 +28,9 @@ Page({
     }
 
     const db = wx.cloud.database()
+    const _ = db.command
     db.collection('works')
-      .where({ isFeatured: true, enabled: true })
+      .where({ isFeatured: true, enabled: true, hidden: _.neq(true) })
       .orderBy('order', 'asc')
       .skip(this.data.skip)
       .limit(this.data.limit)

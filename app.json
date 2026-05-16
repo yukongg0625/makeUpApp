@@ -4,12 +4,16 @@
     "pages/feature/feature",
     "pages/detail/detail",
     "pages/featured/featured",
+    "pages/customer/customer",
     "pages/contact/contact",
     "pages/admin/admin",
     "pages/admin/categories/categories",
     "pages/admin/subcategories/subcategories",
     "pages/admin/works/works",
-    "pages/admin/featured/featured"
+    "pages/admin/featured/featured",
+    "pages/admin/customer/customer",
+    "pages/admin/contact/contact",
+    "pages/admin/cleanup/cleanup"
   ],
   "window": {
     "backgroundTextStyle": "light",
@@ -30,8 +34,8 @@
         "selectedIconPath": "images/home-active.png"
       },
       {
-        "pagePath": "pages/featured/featured",
-        "text": "创意展示",
+        "pagePath": "pages/customer/customer",
+        "text": "美丽瞬间",
         "iconPath": "images/star.png",
         "selectedIconPath": "images/star-active.png"
       },

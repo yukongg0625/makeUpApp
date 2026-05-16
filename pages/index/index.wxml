@@ -31,12 +31,12 @@
     </view>
     <view class="featured-grid">
       <view 
-        class="featured-item" 
-        wx:for="{{featuredWorks}}" 
-        wx:key="_id"
-        bindtap="onWorkTap"
-        data-id="{{item._id}}"
-      >
+          class="featured-item" 
+          wx:for="{{featuredWorks}}" 
+          wx:key="_id"
+          bindtap="onWorkTap"
+          data-id="{{item.workId}}"
+        >
         <image class="featured-image" src="{{item.coverUrl}}" mode="aspectFill" lazy-load="{{true}}" />
         <text class="featured-title">{{item.title}}</text>
       </view>

@@ -1,0 +1,47 @@
+<view class="container">
+  <view class="header">
+    <text class="title">图片引用统计</text>
+    <view class="subtitle">统计数据库中图片的引用情况</view>
+  </view>
+
+  <view class="notice">
+    <text>注：免费版无法直接扫描云存储文件。请复制下方被引用的文件 ID，与云存储中的文件列表对比，未被引用的即为孤立文件。</text>
+  </view>
+
+  <view class="stats-bar">
+    <view class="stat-item">
+      <text class="stat-value">{{stats.totalReferenced}}</text>
+      <text class="stat-label">被引用图片</text>
+    </view>
+    <view class="stat-item">
+      <text class="stat-value">{{stats.totalWorks}}</text>
+      <text class="stat-label">作品数</text>
+    </view>
+    <view class="stat-item">
+      <text class="stat-value">{{stats.totalCategories}}</text>
+      <text class="stat-label">分类数</text>
+    </view>
+  </view>
+
+  <view class="action-bar">
+    <view class="refresh-btn" bindtap="onRefresh">
+      <text>刷新统计</text>
+    </view>
+    <view class="copy-btn" bindtap="copyFileIds">
+      <text>复制文件ID列表</text>
+    </view>
+  </view>
+
+  <view class="file-ids-section" wx:if="{{referencedFileIds.length > 0}}">
+    <view class="section-title">被引用的文件 ID（共 {{referencedFileIds.length}} 个）</view>
+    <scroll-view class="file-ids-list" scroll-y>
+      <view class="file-id-item" wx:for="{{referencedFileIds}}" wx:key="index">
+        <text class="file-id-text">{{item}}</text>
+      </view>
+    </scroll-view>
+  </view>
+
+  <view class="loading-state" wx:if="{{scanning}}">
+    <text class="loading-text">正在统计...</text>
+  </view>
+</view>

@@ -1,0 +1,9 @@
+{
+  "name": "scanOrphanedFiles",
+  "version": "1.0.0",
+  "description": "扫描云存储中的孤立文件",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}
