@@ -182,15 +182,17 @@ Page({
     if (subcategoryName) messageContent += `\n子类：${subcategoryName}`
     if (usageType) messageContent += `\n作品：${usageType}`
     
-    wx.setClipboardData({
-      data: messageContent,
-      success: () => {
-        console.log('作品信息已复制到剪贴板')
-      },
-      fail: (err) => {
-        console.error('复制失败:', err)
-      }
-    })
+    if (messageContent && messageContent.length > 0) {
+      wx.setClipboardData({
+        data: messageContent,
+        success: () => {
+          console.log('作品信息已复制到剪贴板')
+        },
+        fail: (err) => {
+          console.error('复制失败:', err)
+        }
+      })
+    }
     
     this.setData({
       showContactModal: true,

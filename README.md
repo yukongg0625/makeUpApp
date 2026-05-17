@@ -1,6 +1,6 @@
 # 潘潘的美妝穿搭合集 - 化妆造型作品展示小程序
 
-这是一个专业的化妆造型作品展示小程序，用于展示化妆造型作品，并提供预约化妆和租赁服装饰品的功能。
+这是一个专业的化妆造型作品展示小程序，用于展示化妆造型作品，并提供联系客服预约的功能。
 
 ## 功能特性
 
@@ -14,58 +14,82 @@
   - 左侧固定竖向导航条，显示当前影集的子类
   - 多排列表展示子类作品缩略图
   - 点击缩略图查看系列清晰大图，支持上下滑动
-  - 右侧中部固定"联系店家"按钮，可发送至微信聊天预约
+  - 右侧中部固定"联系我们"按钮，点击弹出客服弹窗
   - 底部导航保持显示
+- ✅ 作品详情页：
+  - 图片轮播展示，支持点击预览大图
+  - 显示作品标题、用途类型、描述等信息
+  - 右侧固定"联系我们"气泡按钮（圆形半透明样式）
+  - 点击联系按钮：复制作品信息到剪贴板，弹出客服弹窗
+  - 客服弹窗提供：直接联系、复制图片后联系、取消
+  - 分享功能：分享给微信好友或朋友圈
 - ✅ 精华相册页面：
   - 多排列表展示缩略图片
   - 点击查看清晰大图，显示说明文字和用途类型
-  - 右侧中部固定"联系店家"按钮
+  - 右侧中部固定"联系我们"按钮
 - ✅ 联系我们：
-  - 普通用户：自动弹出微信聊天窗口
-  - 管理员：跳过聊天窗口，显示后台管理入口
+  - 普通用户：显示客服入口
+  - 管理员：显示后台管理入口
+
+### 客服功能
+- ✅ 点击"联系我们"按钮自动复制作品信息到剪贴板
+- ✅ 客服弹窗提供三种操作：
+  - **直接联系**：直接打开客服会话（文字信息已复制）
+  - **复制图片后联系**：下载并保存作品封面到相册，然后在客服聊天中发送图片
+  - **取消**：关闭弹窗
+- ✅ 客服消息支持48小时内回复
+- ✅ 支持多客服人员协作（消息共享）
 
 ### 后端功能（云开发）
 - ✅ 影集管理：添加、删除、修改影集及其封面图片
 - ✅ 子类管理：添加、删除、修改影集下的子类
 - ✅ 作品管理：添加、删除、修改子类下的系列作品
 - ✅ 图片管理：为系列作品添加、修改图片及其说明和类型
-- ✅ 精华相册管理：添加、删除、修改精华相册图片
-- ✅ 云数据库：影集、子类、作品、预约等数据管理
+- ✅ 精华相册管理：添加、移出精华、修改精华相册图片
+- ✅ 云数据库：影集、子类、作品、精华相册等数据管理
 - ✅ 云存储：图片上传和 CDN 加速
 - ✅ 云函数：数据库初始化、登录验证和后台管理操作
 - ✅ 管理员识别：基于 OpenID 的管理员权限控制
+- ✅ 数据备份：本地脚本按层级导出数据库和图片
 
 ## 项目结构
 
 ```
-makeupApp/
-├── pages/                    # 页面目录
-│   ├── index/               # 首页
-│   ├── feature/             # 影集页面
-│   ├── detail/              # 作品详情页
-│   ├── featured/            # 精华相册页面
-│   ├── contact/             # 联系我们页面
-│   └── admin/               # 后台管理页面
-│       ├── admin/           # 后台管理入口
-│       ├── categories/      # 影集管理
-│       ├── subcategories/   # 子类管理
-│       ├── works/           # 作品管理
-│       └── featured/        # 精华相册管理
-├── components/              # 自定义组件
-│   └── tab-bar/            # 自定义底部导航组件
-├── cloudfunctions/          # 云函数目录
-│   ├── initDatabase/        # 数据库初始化云函数
-│   ├── login/              # 登录验证云函数（获取 OpenID）
-│   └── setDatabasePermissions/ # 数据库权限检查云函数
-├── database/                # 数据库索引配置
-├── utils/                   # 工具函数
-│   ├── util.js             # 通用工具函数
-│   └── constants.js        # 常量配置
-├── images/                  # 图片资源
-├── app.js                   # 小程序入口
-├── app.json                 # 小程序配置
-├── app.wxss                 # 全局样式
-└── project.config.json      # 项目配置
+weapp-makeup/
+├── makeupApp/                    # 小程序项目目录
+│   ├── pages/                    # 页面目录
+│   │   ├── index/               # 首页
+│   │   ├── feature/             # 影集页面
+│   │   ├── detail/              # 作品详情页
+│   │   ├── featured/            # 精华相册页面
+│   │   ├── contact/             # 联系我们页面
+│   │   └── admin/               # 后台管理页面
+│   │       ├── admin/           # 后台管理入口
+│   │       ├── categories/      # 影集管理
+│   │       ├── subcategories/   # 子类管理
+│   │       ├── works/           # 作品管理
+│   │       └── featured/        # 精华相册管理
+│   ├── components/              # 自定义组件
+│   │   └── tab-bar/            # 自定义底部导航组件
+│   ├── cloudfunctions/          # 云函数目录
+│   │   ├── initDatabase/        # 数据库初始化云函数
+│   │   ├── login/              # 登录验证云函数（获取 OpenID）
+│   │   ├── setDatabasePermissions/ # 数据库权限检查云函数
+│   │   ├── getImageUrl/        # 获取云存储临时URL云函数
+│   │   ├── deleteDocument/     # 删除文档云函数
+│   │   └── workImages/         # 作品图片管理云函数
+│   ├── database/                # 数据库索引配置
+│   ├── utils/                   # 工具函数
+│   │   ├── util.js             # 通用工具函数
+│   │   └── constants.js        # 常量配置
+│   ├── images/                  # 图片资源
+│   ├── app.js                   # 小程序入口
+│   ├── app.json                 # 小程序配置
+│   ├── app.wxss                 # 全局样式
+│   └── project.config.json      # 项目配置
+└── backupScript/                 # 数据备份脚本
+    ├── backup.js                # 备份脚本
+    └── package.json             # 备份脚本配置
 ```
 
 ## 后端架构说明
@@ -73,7 +97,7 @@ makeupApp/
 ### 云开发方案（推荐）
 本项目使用**微信云开发**作为后端方案，**无需自建服务器**：
 
-- **云数据库**：存储功能集、子类、作品、预约等数据
+- **云数据库**：存储影集、子类、作品、精华相册等数据
 - **云存储**：存储图片资源，自动 CDN 加速
 - **云函数**：处理后台管理操作（增删改查）
 
@@ -81,11 +105,15 @@ makeupApp/
 - ✅ `cloudfunctions/initDatabase/` - 数据库初始化云函数（已完成）
 - ✅ `cloudfunctions/login/` - 登录验证云函数，获取用户 OpenID（已完成）
 - ✅ `cloudfunctions/setDatabasePermissions/` - 数据库权限检查云函数（已完成）
+- ✅ `cloudfunctions/getImageUrl/` - 获取云存储临时URL云函数（已完成）
+- ✅ `cloudfunctions/deleteDocument/` - 删除文档云函数（已完成）
+- ✅ `cloudfunctions/workImages/` - 作品图片管理云函数（已完成）
 - ✅ `pages/admin/` - 后台管理页面（已完成）
   - ✅ 影集管理（增删改查）
   - ✅ 子类管理（增删改查）
   - ✅ 作品管理（增删改查，支持图片上传）
-  - ✅ 精华相册管理（增删改查）
+  - ✅ 精华相册管理（增删改查，移出精华）
+- ✅ `backupScript/` - 数据备份脚本（已完成）
 
 ### 如何调试后端功能
 
@@ -133,7 +161,7 @@ makeupApp/
 5. 重新编译，管理员进入"联系我们"页面时将跳过聊天窗口，并显示"后台管理"入口
 
 ### 进入后台管理
-1. 普通用户：进入"联系我们"页面，自动弹出聊天窗口
+1. 普通用户：进入"联系我们"页面，显示客服入口
 2. 管理员：进入"联系我们"页面，跳过聊天窗口，点击底部"后台管理"按钮
 3. 后台管理功能：
    - **影集管理**：添加/编辑/删除影集，设置封面图片和排序
@@ -144,7 +172,7 @@ makeupApp/
      - 点击作品弹出菜单：设为封面、编辑
      - 编辑界面仅可修改：照片、用途类型、描述、排序（不可修改影集和子类，减少误操作）
      - 删除操作需确认
-   - **精华相册管理**：从已有作品中选择添加到精华相册，设置排序
+   - **精华相册管理**：从已有作品中选择添加到精华相册，设置排序，移出精华
 
 ### 集合说明
 
@@ -180,11 +208,10 @@ makeupApp/
   categoryName: String,     // 影集名称
   subcategoryId: String,    // 子类 ID
   subcategoryName: String,  // 子类名称
-  coverUrl: String,         // 封面图 URL
-  images: Array,            // 图片数组
+  coverImage: String,       // 封面图云存储File ID
+  images: Array,            // 图片云存储File ID数组
   description: String,      // 作品描述
   usageType: String,        // 用途类型（服装租赁、整体造型、化妆造型）
-  isFeatured: Boolean,      // 是否精选
   enabled: Boolean,         // 是否启用
   order: Number,            // 排序
   createTime: Date          // 创建时间
@@ -196,46 +223,81 @@ makeupApp/
 {
   _id: String,              // 精华相册 ID
   workId: String,           // 关联作品 ID
-  coverUrl: String,         // 封面图 URL
   title: String,            // 标题
-  description: String,      // 说明文字
+  categoryId: String,       // 影集 ID
+  categoryName: String,     // 影集名称
+  subcategoryId: String,    // 子类 ID
+  subcategoryName: String,  // 子类名称
+  coverImage: String,       // 封面图云存储File ID
+  images: Array,            // 图片云存储File ID数组
   usageType: String,        // 用途类型
+  description: String,      // 说明文字
   order: Number,            // 排序
-  enabled: Boolean,         // 是否启用
   createTime: Date          // 创建时间
 }
 ```
 
-#### 5. bookings（预约集合）
+#### 5. contactInfo（联系信息集合）
 ```javascript
 {
-  _id: String,              // 预约 ID
-  name: String,             // 客户姓名
-  phone: String,            // 联系电话
-  date: String,             // 预约日期
-  time: String,             // 预约时间
-  serviceType: String,      // 服务类型
-  workId: String,           // 作品 ID
-  workTitle: String,        // 作品标题
-  remark: String,           // 备注
-  status: String,           // 状态：pending/confirmed/completed/cancelled
-  openid: String,           // 用户 openid
-  createTime: Date          // 创建时间
+  _id: String,              // 记录 ID
+  name: String,             // 店铺名称
+  phone: String,            // 联系电话（可选）
+  wechat: String,           // 微信号（可选）
+  address: String,          // 地址（可选）
+  updateTime: Date          // 更新时间
 }
 ```
+
+## 数据备份
+
+### 备份脚本说明
+项目提供本地备份脚本，可按影集→子类→作品的层级结构导出数据库和图片。
+
+**位置**：`backupScript/`
+
+**使用方法**：
+```bash
+cd backupScript
+npm install
+npm run backup
+```
+
+**备份输出结构**：
+```
+backup/
+└── backup_2026-05-17T.../
+    ├── database.json      # 完整数据库导出
+    ├── report.json        # 备份报告
+    ├── README.md          # 备份说明
+    └── works/             # 作品图片（按层级组织）
+        ├── [影集名称]/
+        │   ├── [子类名称]/
+        │   │   ├── [作品名称]/
+        │   │   │   ├── meta.json    # 作品元数据
+        │   │   │   ├── cover.jpg    # 封面
+        │   │   │   └── image_1.jpg  # 作品图片
+```
+
+**备份功能**：
+- 导出所有集合数据（categories、subcategories、works、featured、contactInfo）
+- 自动处理云存储 File ID，转换为临时URL后下载图片
+- 按影集/子类/作品三级目录结构组织图片
+- 并发下载，提高效率
+- 自动生成备份报告和README
 
 ## 快速开始
 
 ### 1. 环境准备
 - 下载并安装 [微信开发者工具](https://developers.weixin.qq.com/miniprogram/dev/devtools/download.html)
-- 注册微信小程序账号，获取 AppID（正在申请过程中）
-- 安装 WSL Ubuntu（已安装）
+- 注册微信小程序账号，获取 AppID
+- 开通微信云开发服务
 
 ### 2. 导入项目
 1. 打开微信开发者工具
 2. 选择"导入项目"
 3. 选择项目目录：`makeupApp`
-4. 填入您的 AppID（或使用测试号）
+4. 填入您的 AppID
 5. 点击"导入"
 
 ### 3. 配置云开发
@@ -269,16 +331,12 @@ wx.cloud.init({
 5. 选择"执行"
 6. 查看日志确认初始化成功
 
-### 6. 上传图片资源
-在 `images/` 目录下准备以下图标：
-- `home.png` / `home-active.png` - 首页图标
-- `star.png` / `star-active.png` - 创意展示图标
-- `contact.png` / `contact-active.png` - 联系我们图标
-- `feature-makeup.png` - 化妆造型封面
-- `feature-overall.png` - 整体造型封面
-- `feature-clothing.png` - 服装租赁封面
-- `feature-accessories.png` - 饰品租赁封面
-- `feature-teaching.png` - 美妆私教封面
+### 6. 配置客服功能
+1. 登录[小程序管理后台](https://mp.weixin.qq.com/)
+2. 进入【功能】→【客服】→【客服管理】
+3. 点击【添加】，输入客服人员的微信号
+4. 客服人员通过微信扫码确认绑定
+5. 绑定后即可在小程序中使用客服功能
 
 ### 7. 编译运行
 1. 点击开发者工具的"编译"按钮，即可在模拟器中预览小程序
@@ -297,13 +355,7 @@ wx.cloud.init({
    - 点击"预览"按钮，生成二维码
    - 使用微信扫描二维码，在手机上进行真机测试
 
-4. **WSL Ubuntu 调试**（如需搭建服务）：
-   - 打开 WSL Ubuntu 终端
-   - 导航到项目目录：`cd /mnt/e/oddfeelings/dev/weapp-makeup/makeupApp`
-   - 安装依赖：`npm install`（如果需要）
-   - 启动本地服务：`npm run dev`（如果需要）
-
-5. **云开发调试**：
+4. **云开发调试**：
    - 在开发者工具中，点击"云开发"按钮
    - 查看云函数日志、数据库数据、存储文件
 
@@ -311,7 +363,8 @@ wx.cloud.init({
 - **图片无法显示**：检查图片路径是否正确，确保图片已上传到云存储
 - **云函数调用失败**：确保云函数已正确上传并部署，检查云环境 ID 配置
 - **数据库查询报错**：检查数据库索引是否已创建，确保查询条件符合索引规则
-- **页面跳转失败**：检查页面路径配置是否正确，确保页面文件存在
+- **客服功能不可用**：确保已在小程序后台绑定客服人员
+- **复制失败提示**：检查剪贴板权限，确保数据不为空
 
 ## 使用说明
 
@@ -341,13 +394,13 @@ wx.cloud.init({
 3. 点击"添加数据"添加新作品
 4. 填写作品标题、关联的影集和子类、封面图、图片数组、描述、用途类型等信息
 5. 设置 `enabled: true` 启用作品
-6. 设置 `isFeatured: true` 加入精华相册
 
-### 管理预约
+### 管理精华相册（云开发控制台）
 1. 在云开发控制台进入"数据库"
-2. 选择 `bookings` 集合
-3. 查看所有预约记录
-4. 可通过 `status` 字段筛选不同状态的预约
+2. 选择 `featured` 集合
+3. 点击"添加数据"添加精华作品
+4. 填写关联作品 ID、排序等信息
+5. 删除记录仅从精华相册移出，不会删除原始作品
 
 ## 开发规范
 
@@ -374,6 +427,15 @@ A: 确保云函数已正确上传并部署，检查云环境 ID 配置是否正�
 ### Q: 数据库查询报错？
 A: 检查数据库索引是否已创建，确保查询条件符合索引规则。
 
+### Q: 客服功能不可用？
+A: 确保已在小程序后台绑定客服人员，个人小程序也支持客服功能。
+
+### Q: 复制信息失败？
+A: 检查数据是否为空，某些系统可能限制剪贴板操作。
+
+### Q: 聊天窗口自动关闭？
+A: 这通常表示客服功能未在后台正确配置，请检查客服人员绑定状态。
+
 ## 后续优化
 
 - [ ] 添加用户登录功能
@@ -381,17 +443,19 @@ A: 检查数据库索引是否已创建，确保查询条件符合索引规则�
 - [x] 实现后台管理系统
 - [ ] 添加消息通知功能
 - [ ] 支持更多分享渠道
-- [ ] 优化图片加载性能
+- [x] 优化图片加载性能
 - [ ] 增加搜索功能
 - [ ] 实现预约管理系统
 - [ ] 添加数据统计和分析功能
 - [ ] 实现拖拽排序功能（后台管理列表拖拽调整排序）
+- [x] 实现数据备份脚本
 
 ## 技术支持
 
 如有问题，请查看：
 - [微信小程序官方文档](https://developers.weixin.qq.com/miniprogram/dev/framework/)
 - [微信云开发文档](https://developers.weixin.qq.com/miniprogram/dev/wxcloud/basis/getting-started.html)
+- [小程序客服功能文档](https://developers.weixin.qq.com/miniprogram/introduction/custom.html)
 
 ## 许可证
 

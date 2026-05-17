@@ -21,7 +21,7 @@
       </view>
       <view class="item-actions">
         <view class="action-btn edit" bindtap="onEditFeatured" data-id="{{item._id}}">编辑</view>
-        <view class="action-btn delete" bindtap="onDeleteFeatured" data-id="{{item._id}}">删除</view>
+        <view class="action-btn delete" bindtap="onDeleteFeatured" data-id="{{item._id}}">移出精华</view>
       </view>
     </view>
   </view>

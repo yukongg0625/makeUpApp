@@ -151,8 +151,8 @@ Page({
     const id = e.currentTarget.dataset.id
     
     wx.showModal({
-      title: '确认删除',
-      content: '删除后无法恢复，确定要删除吗？',
+      title: '确认移出',
+      content: '确定要将该作品移出精华相册吗？',
       success: (res) => {
         if (res.confirm) {
           this.deleteFeatured(id)
