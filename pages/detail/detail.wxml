@@ -54,9 +54,25 @@
   </view>
 
   <!-- 右侧固定联系我们按钮 -->
-  <view class="contact-shop-btn" bindtap="onContactShop">
+  <view class="contact-bubble" bindtap="onContactBubbleTap">
     <text class="contact-icon">💬</text>
-    <text>联系我们</text>
+    <text class="contact-text">联系我们</text>
+  </view>
+
+  <!-- 客服弹窗 -->
+  <view class="contact-modal" wx:if="{{showContactModal}}" bindtap="onCloseContactModal">
+    <view class="contact-modal-content" catchtap="stopPropagation">
+      <view class="modal-title">联系客服</view>
+      <view class="modal-info" wx:if="{{contactMessage}}">
+        <text>已复制以下信息到剪贴板：</text>
+        <text class="contact-message-text">{{contactMessage}}</text>
+      </view>
+      <view class="modal-actions">
+        <button class="modal-btn-secondary" bindtap="onCloseContactModal">取消</button>
+        <button class="modal-btn-primary" open-type="contact" bindcontact="onContactSessionEnd">直接联系</button>
+        <button class="modal-btn-image" bindtap="onCopyImageAndContact">复制图片后联系</button>
+      </view>
+    </view>
   </view>
 
   <!-- 自定义底部导航 -->

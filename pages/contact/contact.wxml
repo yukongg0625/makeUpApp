@@ -20,7 +20,7 @@
       </view>
     </view>
 
-    <button class="contact-btn" bindtap="openWechatChat">
+    <button class="contact-btn" open-type="contact">
       联系客服
     </button>
   </view>

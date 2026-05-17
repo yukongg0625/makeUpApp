@@ -92,23 +92,12 @@ Page({
       },
       fail: function (err) {
         console.error('打开客服聊天失败:', err)
-        // 如果失败，回退到复制微信号
-        wx.showModal({
-          title: '联系客服',
-          content: '客服功能暂时不可用，请复制微信号联系我们：' + this.data.contactInfo.wechat,
-          confirmText: '复制',
-          success: function (res) {
-            if (res.confirm) {
-              wx.setClipboardData({
-                data: this.data.contactInfo.wechat,
-                success: function () {
-                  wx.showToast({ title: '微信号已复制', icon: 'success' })
-                }
-              })
-            }
-          }.bind(this)
+        wx.showToast({
+          title: '客服功能暂未开通，请稍后再试',
+          icon: 'none',
+          duration: 2000
         })
-      }.bind(this)
+      }
     })
   },
 

@@ -12,7 +12,10 @@ Page({
     },
     contactInfo: {
       name: '畔黛造型'
-    }
+    },
+    showContactModal: false,
+    contactMessage: '',
+    showImageSavedTip: false
   },
 
   onLoad: function (options) {
@@ -166,36 +169,123 @@ Page({
     })
   },
 
-  onContactShop() {
-    const companyName = this.data.contactInfo.name || '店家'
-    const workTitle = this.data.workInfo.title || '该作品'
+  onContactBubbleTap() {
+    console.log('联系按钮被点击')
     
-    wx.showModal({
-      title: '联系我们',
-      content: `将跳转到微信聊天，与${companyName}客服联系并发送${workTitle}的信息`,
-      success: (res) => {
-        if (res.confirm) {
-          wx.openCustomerServiceChat({
-            sendMessage: {
-              title: workTitle,
-              content: `我对「${workTitle}」感兴趣，想了解更多详情`,
-              link: `/pages/detail/detail?id=${this.data.workId}`
-            },
-            success: () => {
-              console.log('打开客服聊天成功')
-            },
-            fail: (err) => {
-              console.error('打开客服聊天失败:', err)
+    const workTitle = this.data.workInfo.title || '该作品'
+    const categoryName = this.data.workInfo.categoryName || ''
+    const subcategoryName = this.data.workInfo.subcategoryName || ''
+    const usageType = this.data.workInfo.usageType || ''
+    
+    let messageContent = `我对「${workTitle}」感兴趣，想了解更多详情`
+    if (categoryName) messageContent += `\n影集：${categoryName}`
+    if (subcategoryName) messageContent += `\n子类：${subcategoryName}`
+    if (usageType) messageContent += `\n作品：${usageType}`
+    
+    wx.setClipboardData({
+      data: messageContent,
+      success: () => {
+        console.log('作品信息已复制到剪贴板')
+      },
+      fail: (err) => {
+        console.error('复制失败:', err)
+      }
+    })
+    
+    this.setData({
+      showContactModal: true,
+      contactMessage: messageContent
+    })
+  },
+
+  onCloseContactModal() {
+    this.setData({
+      showContactModal: false,
+      contactMessage: ''
+    })
+  },
+
+  onContactSessionEnd(e) {
+    console.log('客服会话结束', e)
+    this.setData({
+      showContactModal: false,
+      contactMessage: ''
+    })
+  },
+
+  onCopyImageAndContact() {
+    const coverImage = this.data.images[0] || ''
+    
+    if (!coverImage) {
+      wx.showToast({
+        title: '暂无图片',
+        icon: 'none'
+      })
+      return
+    }
+
+    wx.showLoading({ title: '保存图片中...' })
+    
+    wx.downloadFile({
+      url: coverImage,
+      success: (downloadRes) => {
+        wx.saveImageToPhotosAlbum({
+          filePath: downloadRes.tempFilePath,
+          success: () => {
+            wx.hideLoading()
+            this.setData({ showImageSavedTip: true })
+            
+            wx.showModal({
+              title: '图片已保存',
+              content: '作品图片已保存到相册，请在客服聊天中发送图片给客服',
+              confirmText: '打开客服',
+              cancelText: '稍后再说',
+              success: (res) => {
+                this.setData({ showImageSavedTip: false })
+                if (res.confirm) {
+                  wx.showToast({
+                    title: '请点击下方"直接联系"按钮',
+                    icon: 'none',
+                    duration: 2000
+                  })
+                }
+              }
+            })
+          },
+          fail: (saveErr) => {
+            wx.hideLoading()
+            console.error('保存图片失败:', saveErr)
+            if (saveErr.errMsg.includes('auth')) {
+              wx.showModal({
+                title: '需要相册权限',
+                content: '请在设置中允许访问相册',
+                success: (modalRes) => {
+                  if (modalRes.confirm) {
+                    wx.openSetting()
+                  }
+                }
+              })
+            } else {
               wx.showToast({
-                title: '无法打开客服聊天',
+                title: '保存失败',
                 icon: 'error'
               })
             }
-          })
-        }
+          }
+        })
+      },
+      fail: (err) => {
+        wx.hideLoading()
+        console.error('下载图片失败:', err)
+        wx.showToast({
+          title: '图片下载失败',
+          icon: 'error'
+        })
       }
     })
   },
+
+  stopPropagation() {},
 
   onShareAppMessage() {
     return {
