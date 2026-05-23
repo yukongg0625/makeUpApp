@@ -24,9 +24,13 @@
   - 客服弹窗提供：直接联系、复制图片后联系、取消
   - 分享功能：分享给微信好友或朋友圈
 - ✅ 精华相册页面：
-  - 多排列表展示缩略图片
+  - 双列网格布局展示缩略图片
   - 点击查看清晰大图，显示说明文字和用途类型
   - 右侧中部固定"联系我们"按钮
+- ✅ 客照页面（信任定格）：
+  - 双列网格布局展示客照图片
+  - 支持相册名称自定义
+  - 底部导航保持显示
 - ✅ 联系我们：
   - 普通用户：显示客服入口
   - 管理员：显示后台管理入口
@@ -41,16 +45,22 @@
 - ✅ 支持多客服人员协作（消息共享）
 
 ### 后端功能（云开发）
-- ✅ 影集管理：添加、删除、修改影集及其封面图片
-- ✅ 子类管理：添加、删除、修改影集下的子类
+- ✅ 影集管理：添加、删除、修改影集及其封面图片，支持隐藏/显示切换
+- ✅ 子类管理：添加、删除、修改影集下的子类，支持隐藏/显示切换
 - ✅ 作品管理：添加、删除、修改子类下的系列作品
+  - 支持精华状态切换（加入精华/移出精华）
+  - 精华状态与精华相册自动双向同步
+  - 支持隐藏/显示切换
 - ✅ 图片管理：为系列作品添加、修改图片及其说明和类型
 - ✅ 精华相册管理：添加、移出精华、修改精华相册图片
-- ✅ 云数据库：影集、子类、作品、精华相册等数据管理
+  - 添加作品时自动过滤已加入精华的作品
+  - 编辑时仅可修改排序号
+- ✅ 客照管理：添加、删除、修改客照图片，自定义相册名称
+- ✅ 云数据库：影集、子类、作品、精华相册、客照等数据管理
 - ✅ 云存储：图片上传和 CDN 加速
 - ✅ 云函数：数据库初始化、登录验证和后台管理操作
 - ✅ 管理员识别：基于 OpenID 的管理员权限控制
-- ✅ 数据备份：本地脚本按层级导出数据库和图片
+- ✅ 数据备份与恢复：本地脚本按层级导出数据库和图片，支持数据恢复
 
 ## 项目结构
 
@@ -62,13 +72,15 @@ weapp-makeup/
 │   │   ├── feature/             # 影集页面
 │   │   ├── detail/              # 作品详情页
 │   │   ├── featured/            # 精华相册页面
+│   │   ├── customer/            # 客照页面
 │   │   ├── contact/             # 联系我们页面
 │   │   └── admin/               # 后台管理页面
 │   │       ├── admin/           # 后台管理入口
 │   │       ├── categories/      # 影集管理
 │   │       ├── subcategories/   # 子类管理
 │   │       ├── works/           # 作品管理
-│   │       └── featured/        # 精华相册管理
+│   │       ├── featured/        # 精华相册管理
+│   │       └── customer/        # 客照管理
 │   ├── components/              # 自定义组件
 │   │   └── tab-bar/            # 自定义底部导航组件
 │   ├── cloudfunctions/          # 云函数目录
@@ -81,15 +93,17 @@ weapp-makeup/
 │   ├── database/                # 数据库索引配置
 │   ├── utils/                   # 工具函数
 │   │   ├── util.js             # 通用工具函数
-│   │   └── constants.js        # 常量配置
+│   │   ├── constants.js        # 常量配置
+│   │   └── cloudStorage.js     # 云存储URL转换工具
 │   ├── images/                  # 图片资源
+│   ├── config.js                # 应用配置（含云函数开关）
 │   ├── app.js                   # 小程序入口
 │   ├── app.json                 # 小程序配置
 │   ├── app.wxss                 # 全局样式
 │   └── project.config.json      # 项目配置
-└── backupScript/                 # 数据备份脚本
+└── backupandrestore/             # 数据备份与恢复脚本
     ├── backup.js                # 备份脚本
-    └── package.json             # 备份脚本配置
+    └── restore.js               # 恢复脚本
 ```
 
 ## 后端架构说明
@@ -160,6 +174,47 @@ weapp-makeup/
    ```
 5. 重新编译，管理员进入"联系我们"页面时将跳过聊天窗口，并显示"后台管理"入口
 
+### 云存储配置
+
+#### 开发环境（云存储权限受限）
+当云存储权限设置为"仅创建者可读"时，需要修改 `config.js`：
+
+```javascript
+// config.js
+module.exports = {
+  storage: {
+    // 使用云函数获取图片临时URL（绕过权限限制）
+    useCloudFunctionForImageUrl: true
+  },
+  cloudEnv: 'your-env-id'
+}
+```
+
+#### 生产环境（正式上线）
+建议将云存储权限修改为"所有用户可读"，然后修改配置：
+
+```javascript
+// config.js
+module.exports = {
+  storage: {
+    // 直接使用前端API获取临时URL（节省云函数调用次数）
+    useCloudFunctionForImageUrl: false
+  },
+  cloudEnv: 'your-env-id'
+}
+```
+
+**修改云存储权限步骤：**
+1. 登录[云开发控制台](https://console.cloud.tencent.com/tcb)
+2. 进入"存储"→"权限设置"
+3. 将权限从"仅创建者可读"修改为"所有用户可读"
+4. 修改 `config.js` 中的 `useCloudFunctionForImageUrl` 为 `false`
+
+**优势：**
+- 节省云函数调用配额（免费版每月 50 万次）
+- 减少网络请求延迟
+- 代码更简洁
+
 ### 进入后台管理
 1. 普通用户：进入"联系我们"页面，显示客服入口
 2. 管理员：进入"联系我们"页面，跳过聊天窗口，点击底部"后台管理"按钮
@@ -173,6 +228,9 @@ weapp-makeup/
      - 编辑界面仅可修改：照片、用途类型、描述、排序（不可修改影集和子类，减少误操作）
      - 删除操作需确认
    - **精华相册管理**：从已有作品中选择添加到精华相册，设置排序，移出精华
+     - 添加作品时自动过滤已加入精华的作品
+     - 编辑时仅可修改排序号
+     - 移出精华时自动同步作品状态
 
 ### 集合说明
 
@@ -183,6 +241,7 @@ weapp-makeup/
   name: String,             // 影集名称（如：化妆造型、整体造型、服装租赁、饰品租赁、美妆私教）
   coverImage: String,       // 影集封面图片路径
   order: Number,            // 排序
+  hidden: Boolean,          // 是否隐藏
   enabled: Boolean          // 是否启用
 }
 ```
@@ -195,6 +254,7 @@ weapp-makeup/
   categoryName: String,     // 影集名称
   name: String,             // 子类名称（如：妆造1、妆造2、租赁1等）
   order: Number,            // 排序
+  hidden: Boolean,          // 是否隐藏
   enabled: Boolean          // 是否启用
 }
 ```
@@ -213,6 +273,8 @@ weapp-makeup/
   description: String,      // 作品描述
   usageType: String,        // 用途类型（服装租赁、整体造型、化妆造型）
   enabled: Boolean,         // 是否启用
+  isFeatured: Boolean,      // 是否精华
+  hidden: Boolean,          // 是否隐藏
   order: Number,            // 排序
   createTime: Date          // 创建时间
 }
@@ -237,7 +299,19 @@ weapp-makeup/
 }
 ```
 
-#### 5. contactInfo（联系信息集合）
+#### 5. customerPhotos（客照集合）
+```javascript
+{
+  _id: String,              // 客照 ID
+  imageUrl: String,         // 图片云存储File ID
+  description: String,      // 图片描述
+  order: Number,            // 排序
+  hidden: Boolean,          // 是否隐藏
+  createTime: Date          // 创建时间
+}
+```
+
+#### 6. contactInfo（联系信息集合）
 ```javascript
 {
   _id: String,              // 记录 ID
@@ -249,16 +323,16 @@ weapp-makeup/
 }
 ```
 
-## 数据备份
+## 数据备份与恢复
 
 ### 备份脚本说明
 项目提供本地备份脚本，可按影集→子类→作品的层级结构导出数据库和图片。
 
-**位置**：`backupScript/`
+**位置**：`backupandrestore/`
 
 **使用方法**：
 ```bash
-cd backupScript
+cd backupandrestore
 npm install
 npm run backup
 ```
@@ -280,11 +354,27 @@ backup/
 ```
 
 **备份功能**：
-- 导出所有集合数据（categories、subcategories、works、featured、contactInfo）
+- 导出所有集合数据（categories、subcategories、works、featured、customerPhotos、contactInfo）
 - 自动处理云存储 File ID，转换为临时URL后下载图片
 - 按影集/子类/作品三级目录结构组织图片
 - 并发下载，提高效率
 - 自动生成备份报告和README
+
+### 恢复脚本说明
+项目提供数据恢复脚本，可将备份数据导入云数据库。
+
+**使用方法**：
+```bash
+cd backupandrestore
+npm install
+npm run restore -- <backup_dir>
+```
+
+**恢复功能**：
+- 从备份目录读取数据库JSON文件
+- 按集合逐个导入数据到云数据库
+- 支持冲突处理（跳过/覆盖）
+- 自动生成恢复报告
 
 ## 快速开始
 
@@ -444,11 +534,14 @@ A: 这通常表示客服功能未在后台正确配置，请检查客服人员�
 - [ ] 添加消息通知功能
 - [ ] 支持更多分享渠道
 - [x] 优化图片加载性能
+- [x] 统一云存储URL转换工具
+- [x] 实现精华状态双向同步
+- [x] 实现客照管理功能
+- [x] 实现数据备份与恢复脚本
 - [ ] 增加搜索功能
 - [ ] 实现预约管理系统
 - [ ] 添加数据统计和分析功能
 - [ ] 实现拖拽排序功能（后台管理列表拖拽调整排序）
-- [x] 实现数据备份脚本
 
 ## 技术支持
 

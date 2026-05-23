@@ -76,5 +76,20 @@
   </view>
 
   <!-- 自定义底部导航 -->
-  <tab-bar currentTab="{{0}}"></tab-bar>
+  <view class="custom-tab-bar">
+    <view class="tab-bar">
+      <view class="tab-item" bindtap="switchTab" data-page="/pages/index/index">
+        <image class="tab-icon" src="/images/home.png" mode="aspectFit"></image>
+        <text class="tab-text">主页</text>
+      </view>
+      <view class="tab-item" bindtap="onMiddleTabTap">
+        <image class="tab-icon" src="/images/star.png" mode="aspectFit"></image>
+        <text class="tab-text">{{middleTabText}}</text>
+      </view>
+      <view class="tab-item" bindtap="switchTab" data-page="/pages/contact/contact">
+        <image class="tab-icon" src="/images/calendar.png" mode="aspectFit"></image>
+        <text class="tab-text">联系我们</text>
+      </view>
+    </view>
+  </view>
 </view>

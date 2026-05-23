@@ -1,4 +1,5 @@
 // pages/admin/works/works.js
+const cloudStorage = require('../../../utils/cloudStorage.js')
 Page({
   data: {
     categories: [],
@@ -775,14 +776,9 @@ Page({
           
           imageFileIds.push(res.fileID)
           
-          wx.cloud.getTempFileURL({
-            fileList: [res.fileID]
-          }).then(urlRes => {
-            if (urlRes.fileList && urlRes.fileList[0] && urlRes.fileList[0].status === 0) {
-              images.push(urlRes.fileList[0].tempFileURL)
-            } else {
-              images.push(res.fileID)
-            }
+          cloudStorage.getTempFileURL([res.fileID]).then(urlMap => {
+            const tempUrl = urlMap[res.fileID] || res.fileID
+            images.push(tempUrl)
             
             this.setData({
               'formData.images': images,
@@ -875,13 +871,26 @@ Page({
     }
     
     if (this.data.editMode) {
+      // 获取原来的 isFeatured 状态
+      const oldWork = this.data.works.find(w => w._id === this.data.editId)
+      const oldIsFeatured = oldWork ? (oldWork.isFeatured || false) : false
+      
       db.collection('works').doc(this.data.editId).update({
         data: data
       }).then(() => {
-        wx.hideLoading()
-        wx.showToast({ title: '保存成功', icon: 'success' })
-        this.onCloseModal()
-        this.loadCurrentFilteredWorks()
+        // 同步 featured 集合
+        if (isFeatured && !oldIsFeatured) {
+          // 新加入精华
+          this.addFeaturedRecord(data)
+        } else if (!isFeatured && oldIsFeatured) {
+          // 移出精华
+          this.removeFeaturedRecord(this.data.editId)
+        } else {
+          wx.hideLoading()
+          wx.showToast({ title: '保存成功', icon: 'success' })
+          this.onCloseModal()
+          this.loadCurrentFilteredWorks()
+        }
       }).catch(err => {
         wx.hideLoading()
         wx.showToast({ title: '保存失败', icon: 'error' })
@@ -890,9 +899,15 @@ Page({
     } else {
       db.collection('works').add({
         data: data
-      }).then(() => {
+      }).then(res => {
         wx.hideLoading()
         wx.showToast({ title: '添加成功', icon: 'success' })
+        
+        // 如果是精华作品，同步添加到 featured 集合
+        if (isFeatured) {
+          data._id = res._id
+          this.addFeaturedRecord(data)
+        }
         
         const categoryIndex = this.data.categories.findIndex(
           cat => String(cat._id) === String(categoryId)
@@ -916,6 +931,77 @@ Page({
         console.error('添加作品失败:', err)
       })
     }
+  },
+
+  // 添加精华记录
+  addFeaturedRecord: function(workData) {
+    const db = wx.cloud.database()
+    const featuredData = {
+      workId: workData._id || this.data.editId,
+      title: workData.title,
+      categoryId: workData.categoryId,
+      categoryName: workData.categoryName,
+      subcategoryId: workData.subcategoryId,
+      subcategoryName: workData.subcategoryName,
+      coverImage: workData.coverImage,
+      images: workData.images,
+      usageType: workData.usageType,
+      description: workData.description,
+      order: workData.order
+    }
+    
+    db.collection('featured').add({
+      data: featuredData
+    }).then(() => {
+      wx.hideLoading()
+      wx.showToast({ title: '保存成功', icon: 'success' })
+      this.onCloseModal()
+      this.loadCurrentFilteredWorks()
+    }).catch(err => {
+      wx.hideLoading()
+      wx.showToast({ title: '保存成功，但同步精华失败', icon: 'none' })
+      console.error('同步精华记录失败:', err)
+      this.onCloseModal()
+      this.loadCurrentFilteredWorks()
+    })
+  },
+
+  // 移除精华记录
+  removeFeaturedRecord: function(workId) {
+    const db = wx.cloud.database()
+    db.collection('featured').where({ workId: workId }).get().then(res => {
+      if (res.data.length > 0) {
+        const featuredId = res.data[0]._id
+        wx.cloud.callFunction({
+          name: 'deleteDocument',
+          data: {
+            collection: 'featured',
+            id: featuredId
+          }
+        }).then(() => {
+          wx.hideLoading()
+          wx.showToast({ title: '保存成功', icon: 'success' })
+          this.onCloseModal()
+          this.loadCurrentFilteredWorks()
+        }).catch(err => {
+          wx.hideLoading()
+          wx.showToast({ title: '保存成功，但同步精华失败', icon: 'none' })
+          console.error('删除精华记录失败:', err)
+          this.onCloseModal()
+          this.loadCurrentFilteredWorks()
+        })
+      } else {
+        wx.hideLoading()
+        wx.showToast({ title: '保存成功', icon: 'success' })
+        this.onCloseModal()
+        this.loadCurrentFilteredWorks()
+      }
+    }).catch(err => {
+      wx.hideLoading()
+      wx.showToast({ title: '保存成功', icon: 'success' })
+      this.onCloseModal()
+      this.loadCurrentFilteredWorks()
+    })
   },
 
   loadCurrentFilteredWorks: function () {
@@ -968,6 +1054,14 @@ Page({
     const currentValue = this.data.formData.hidden
     this.setData({
       'formData.hidden': !currentValue,
+      hasChanges: true
+    })
+  },
+
+  onToggleFeaturedInForm: function () {
+    const currentValue = this.data.formData.isFeatured
+    this.setData({
+      'formData.isFeatured': !currentValue,
       hasChanges: true
     })
   },

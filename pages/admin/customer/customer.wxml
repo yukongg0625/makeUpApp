@@ -2,7 +2,12 @@
 <view class="container">
   <!-- 顶部操作栏 -->
   <view class="header">
-    <text class="title">客照管理</text>
+    <view class="title-section">
+      <text class="title">{{albumName || '客照管理'}}</text>
+      <view class="rename-btn" bindtap="onRenameAlbum">
+        <text>改名</text>
+      </view>
+    </view>
     <view class="add-btn" bindtap="onAddPhoto">
       <text>+ 添加照片</text>
     </view>
@@ -39,6 +44,26 @@
   <!-- 加载状态 -->
   <view class="loading" wx:if="{{loading}}">
     <text>加载中...</text>
+  </view>
+</view>
+
+<!-- 改名弹窗 -->
+<view class="modal" wx:if="{{showRenameModal}}">
+  <view class="modal-content rename-modal">
+    <view class="modal-header">
+      <text class="modal-title">修改相册名称</text>
+      <text class="modal-close" bindtap="onCloseRenameModal">×</text>
+    </view>
+    <view class="modal-body">
+      <view class="form-item">
+        <text class="form-label">相册名称</text>
+        <input class="form-input" value="{{newAlbumName}}" bindinput="onAlbumNameInput" placeholder="请输入相册名称" maxlength="20" />
+      </view>
+    </view>
+    <view class="modal-footer">
+      <view class="modal-btn cancel" bindtap="onCloseRenameModal">取消</view>
+      <view class="modal-btn confirm" bindtap="onSaveAlbumName">保存</view>
+    </view>
   </view>
 </view>
 

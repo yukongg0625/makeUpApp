@@ -28,6 +28,9 @@ exports.main = async (event, context) => {
     // 初始化示例作品
     await createSampleWorks()
     
+    // 初始化设置集合
+    await createSettings()
+    
     return {
       success: true,
       message: '数据库初始化成功'
@@ -41,9 +44,24 @@ exports.main = async (event, context) => {
   }
 }
 
+// 创建设置数据
+async function createSettings() {
+  try {
+    await db.collection('settings').doc('customerAlbum').set({
+      data: {
+        albumName: '美丽瞬间',
+        createTime: db.serverDate()
+      }
+    })
+    console.log('添加客照相册设置成功')
+  } catch (err) {
+    console.log('客照相册设置已存在或创建失败:', err.message)
+  }
+}
+
 // 创建集合
 async function createCollections() {
-  const collections = ['categories', 'subcategories', 'banners', 'works', 'featured']
+  const collections = ['categories', 'subcategories', 'banners', 'works', 'featured', 'customerPhotos', 'settings']
   
   for (const collectionName of collections) {
     try {

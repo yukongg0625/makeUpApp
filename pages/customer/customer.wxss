@@ -25,14 +25,17 @@
 
 /* 照片网格 */
 .photo-grid {
+  padding: 0 30rpx;
+}
+
+.photo-row {
   display: flex;
-  flex-wrap: wrap;
-  gap: 15rpx;
-  padding: 30rpx;
+  justify-content: space-between;
+  margin-bottom: 15rpx;
 }
 
 .photo-item {
-  width: calc(50% - 7.5rpx);
+  width: 48%;
   background-color: #fff;
   border-radius: 12rpx;
   overflow: hidden;

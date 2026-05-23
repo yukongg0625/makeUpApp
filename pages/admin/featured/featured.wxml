@@ -45,14 +45,20 @@
       <text class="modal-close" bindtap="onCloseModal">×</text>
     </view>
     <scroll-view class="modal-body" scroll-y="{{true}}">
-      <view class="form-item">
+      <view class="form-item" wx:if="{{!editMode}}">
         <text class="form-label">选择作品</text>
-        <picker mode="selector" range="{{workTitles}}" value="{{formData.workIndex}}" bindchange="onWorkPickerChange">
+        <picker mode="selector" range="{{availableWorks}}" range-key="title" value="{{formData.workIndex}}" bindchange="onWorkPickerChange">
           <view class="picker-input">
             <text>{{formData.workTitle || '选择作品'}}</text>
             <text class="arrow">▼</text>
           </view>
         </picker>
+      </view>
+      <view class="form-item" wx:if="{{editMode}}">
+        <text class="form-label">作品</text>
+        <view class="picker-input disabled">
+          <text>{{formData.workTitle}}</text>
+        </view>
       </view>
       <view class="form-item">
         <text class="form-label">排序</text>

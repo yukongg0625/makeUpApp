@@ -1,4 +1,5 @@
 // pages/admin/categories/categories.js
+const cloudStorage = require('../../../utils/cloudStorage.js')
 Page({
   data: {
     categories: [],
@@ -55,40 +56,7 @@ Page({
   },
 
   convertCloudStorageUrls: function (data, fieldName) {
-    const fileIds = data
-      .filter(item => item[fieldName] && item[fieldName].startsWith('cloud://'))
-      .map(item => item[fieldName])
-
-    if (fileIds.length === 0) {
-      return Promise.resolve(data)
-    }
-
-    return wx.cloud.callFunction({
-      name: 'getImageUrl',
-      data: {
-        action: 'getTempFileURL',
-        fileList: fileIds
-      }
-    }).then(res => {
-      if (res.result && res.result.success) {
-        const urlMap = res.result.urlMap || {}
-        return data.map(item => {
-          if (item[fieldName] && item[fieldName].startsWith('cloud://')) {
-            return {
-              ...item,
-              [fieldName]: urlMap[item[fieldName]] || item[fieldName]
-            }
-          }
-          return item
-        })
-      } else {
-        console.error('云函数获取 URL 失败:', res.result?.message)
-        return data
-      }
-    }).catch(err => {
-      console.error('转换云存储 URL 失败:', err)
-      return data
-    })
+    return cloudStorage.convertCloudStorageUrls(data, fieldName)
   },
 
   onAddCategory: function () {

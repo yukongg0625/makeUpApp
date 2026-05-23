@@ -190,6 +190,13 @@
         </view>
         <text class="form-hint">{{formData.hidden ? '选择显示作品，用户可见' : '隐藏后该作品将对用户不可见'}}</text>
       </view>
+      <view class="form-item">
+        <text class="form-label">精华状态</text>
+        <view class="featured-btn {{formData.isFeatured ? 'featured' : ''}}" bindtap="onToggleFeaturedInForm">
+          <text>{{formData.isFeatured ? '移出精华' : '加入精华'}}</text>
+        </view>
+        <text class="form-hint">{{formData.isFeatured ? '该作品已加入精华相册' : '加入后该作品将出现在精华相册中'}}</text>
+      </view>
       
       <!-- 图片上传区域 -->
       <view class="form-item">

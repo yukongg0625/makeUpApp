@@ -1,6 +1,10 @@
+const cloudStorage = require('../../utils/cloudStorage.js')
+
 Page({
   data: {
     workId: null,
+    categoryId: '',
+    subcategoryId: '',
     images: [],
     currentImageIndex: 0,
     workInfo: {
@@ -15,7 +19,9 @@ Page({
     },
     showContactModal: false,
     contactMessage: '',
-    showImageSavedTip: false
+    showImageSavedTip: false,
+    middleTabText: '美丽瞬间',
+    middleTabUrl: ''
   },
 
   onLoad: function (options) {
@@ -63,6 +69,8 @@ Page({
           
           this.setData({
             images: validImages,
+            categoryId: work.categoryId || '',
+            subcategoryId: work.subcategoryId || '',
             workInfo: {
               title: work.title || '作品详情',
               description: work.description || '',
@@ -71,6 +79,7 @@ Page({
               subcategoryName: work.subcategoryName || ''
             }
           })
+          this.updateTabBar()
           wx.hideLoading()
         }).catch(err => {
           console.error('转换图片URL失败:', err)
@@ -84,6 +93,7 @@ Page({
               subcategoryName: work.subcategoryName || ''
             }
           })
+          this.updateTabBar()
           wx.hideLoading()
         })
       })
@@ -92,6 +102,25 @@ Page({
         wx.hideLoading()
         wx.showToast({ title: '加载失败', icon: 'error' })
       })
+  },
+
+  updateTabBar() {
+    const subcategoryName = this.data.workInfo.subcategoryName || ''
+    const categoryId = this.data.categoryId || ''
+    const subcategoryId = this.data.subcategoryId || ''
+    const categoryName = this.data.workInfo.categoryName || ''
+    
+    if (subcategoryName && categoryId && subcategoryId) {
+      this.setData({
+        middleTabText: subcategoryName,
+        middleTabUrl: `/pages/feature/feature?id=${categoryId}&name=${encodeURIComponent(categoryName)}&subcategoryId=${subcategoryId}`
+      })
+    } else {
+      this.setData({
+        middleTabText: '美丽瞬间',
+        middleTabUrl: ''
+      })
+    }
   },
 
   onImageError: function(e) {
@@ -109,15 +138,7 @@ Page({
       return Promise.resolve(fileIds)
     }
     
-    return wx.cloud.callFunction({
-      name: 'getImageUrl',
-      data: {
-        action: 'getTempFileURL',
-        fileList: cloudFileIds
-      }
-    }).then(res => {
-      const urlMap = res.result.urlMap || {}
-      
+    return cloudStorage.getTempFileURL(cloudFileIds).then(urlMap => {
       return fileIds.map(id => {
         if (id && id.startsWith('cloud://')) {
           return urlMap[id] || id
@@ -294,6 +315,19 @@ Page({
       title: this.data.workInfo.title,
       path: `/pages/detail/detail?id=${this.data.workId}`,
       imageUrl: this.data.images[0]
+    }
+  },
+
+  switchTab(e) {
+    const page = e.currentTarget.dataset.page
+    wx.switchTab({ url: page })
+  },
+
+  onMiddleTabTap() {
+    if (this.data.middleTabUrl) {
+      wx.navigateTo({ url: this.data.middleTabUrl })
+    } else {
+      wx.switchTab({ url: '/pages/customer/customer' })
     }
   }
 })

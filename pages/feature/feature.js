@@ -1,4 +1,5 @@
 // pages/feature/feature.js
+const cloudStorage = require('../../utils/cloudStorage.js')
 Page({
   data: {
     category: {},
@@ -11,6 +12,7 @@ Page({
   onLoad: function (options) {
     const categoryId = options.id
     const categoryName = options.name ? decodeURIComponent(options.name) : '影集'
+    const subcategoryId = options.subcategoryId || ''
 
     wx.setNavigationBarTitle({
       title: categoryName
@@ -18,20 +20,21 @@ Page({
 
     this.setData({
       _categoryId: categoryId,
-      _categoryName: categoryName
+      _categoryName: categoryName,
+      _subcategoryId: subcategoryId
     })
 
-    this.reloadCategoryData(categoryId, categoryName)
+    this.reloadCategoryData(categoryId, categoryName, subcategoryId)
   },
 
   onShow: function () {
     if (this.data._categoryId) {
-      this.reloadCategoryData(this.data._categoryId, this.data._categoryName)
+      this.reloadCategoryData(this.data._categoryId, this.data._categoryName, this.data._subcategoryId)
     }
   },
 
-  reloadCategoryData: function (categoryId, categoryName) {
-    const previouslySelectedSubcategoryId = this.data.selectedSubcategory ? this.data.selectedSubcategory._id : null
+  reloadCategoryData: function (categoryId, categoryName, targetSubcategoryId) {
+    const previouslySelectedSubcategoryId = targetSubcategoryId || (this.data.selectedSubcategory ? this.data.selectedSubcategory._id : null)
 
     this.setData({ loading: true })
 
@@ -158,36 +161,7 @@ Page({
   },
 
   convertCloudStorageUrls: function(data, fieldName) {
-    const fileIds = data
-      .filter(item => item[fieldName] && item[fieldName].startsWith('cloud://'))
-      .map(item => item[fieldName])
-
-    if (fileIds.length === 0) {
-      return Promise.resolve(data)
-    }
-
-    return wx.cloud.callFunction({
-      name: 'getImageUrl',
-      data: {
-        action: 'getTempFileURL',
-        fileList: fileIds
-      }
-    }).then(res => {
-      const urlMap = res.result.urlMap || {}
-
-      return data.map(item => {
-        if (item[fieldName] && item[fieldName].startsWith('cloud://')) {
-          return {
-            ...item,
-            [fieldName]: urlMap[item[fieldName]] || item[fieldName]
-          }
-        }
-        return item
-      })
-    }).catch(err => {
-      console.error('转换云存储 URL 失败:', err)
-      return data
-    })
+    return cloudStorage.convertCloudStorageUrls(data, fieldName)
   },
 
   onSubcategoryTap: function (e) {

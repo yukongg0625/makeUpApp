@@ -15,10 +15,24 @@
   margin-bottom: 20rpx;
 }
 
+.title-section {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
 .title {
   font-size: 32rpx;
   font-weight: bold;
   color: #333;
+}
+
+.rename-btn {
+  background-color: #f0f0f0;
+  color: #666;
+  padding: 8rpx 20rpx;
+  border-radius: 16rpx;
+  font-size: 24rpx;
 }
 
 .add-btn {
@@ -264,6 +278,8 @@
   border-radius: 8rpx;
   font-size: 28rpx;
   box-sizing: border-box;
+  height: 80rpx;
+  line-height: 40rpx;
 }
 
 .modal-footer {

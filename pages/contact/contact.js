@@ -19,10 +19,29 @@ Page({
   },
 
   onShow: function () {
-    // 页面显示时重新检查管理员状态
     this.checkAdminStatus()
-    // 页面显示时重新加载数据，确保从管理页面返回时能看到更新
     this.loadContactInfo()
+    this.updateTabBar()
+  },
+
+  updateTabBar() {
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      const db = wx.cloud.database()
+      db.collection('settings').doc('customerAlbum').get()
+        .then(res => {
+          if (res.data && res.data.albumName) {
+            this.getTabBar().setData({
+              selected: 2,
+              albumName: res.data.albumName
+            })
+          } else {
+            this.getTabBar().setData({ selected: 2 })
+          }
+        })
+        .catch(() => {
+          this.getTabBar().setData({ selected: 2 })
+        })
+    }
   },
 
   // 检查管理员状态

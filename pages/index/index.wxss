@@ -43,6 +43,7 @@
   align-items: center;
   margin: 0 20rpx;
   min-width: 140rpx;
+  padding: 6rpx 0;
 }
 
 .feature-cover {

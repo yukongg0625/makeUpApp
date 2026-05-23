@@ -196,6 +196,11 @@
   color: #999;
 }
 
+.picker-input.disabled {
+  background-color: #f0f0f0;
+  color: #999;
+}
+
 .form-input {
   width: 100%;
   padding: 20rpx;
@@ -203,6 +208,8 @@
   border-radius: 8rpx;
   font-size: 28rpx;
   box-sizing: border-box;
+  height: 80rpx;
+  line-height: 40rpx;
 }
 
 .modal-footer {

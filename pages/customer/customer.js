@@ -1,15 +1,58 @@
+const cloudStorage = require('../../utils/cloudStorage.js')
+
 Page({
   data: {
     photos: [],
+    photoRows: [],
+    albumName: '美丽瞬间',
     loading: false
   },
 
   onLoad: function () {
+    this.loadAlbumName()
     this.loadPhotos()
   },
 
   onShow: function () {
+    this.loadAlbumName()
     this.loadPhotos()
+    this.updateTabBar()
+  },
+
+  updateTabBar() {
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      const db = wx.cloud.database()
+      db.collection('settings').doc('customerAlbum').get()
+        .then(res => {
+          if (res.data && res.data.albumName) {
+            this.getTabBar().setData({
+              selected: 1,
+              albumName: res.data.albumName,
+              middleTab: null
+            })
+          } else {
+            this.getTabBar().setData({ selected: 1, middleTab: null })
+          }
+        })
+        .catch(() => {
+          this.getTabBar().setData({ selected: 1, middleTab: null })
+        })
+    }
+  },
+
+  loadAlbumName() {
+    const db = wx.cloud.database()
+    db.collection('settings').doc('customerAlbum').get()
+      .then(res => {
+        if (res.data && res.data.albumName) {
+          this.setData({ albumName: res.data.albumName })
+        }
+      })
+      .catch(err => {
+        if (err.errCode !== -502005) {
+          console.error('加载相册名称失败:', err)
+        }
+      })
   },
 
   loadPhotos() {
@@ -23,8 +66,13 @@ Page({
       .then(res => {
         const photos = res.data
         this.convertCloudStorageUrls(photos, 'imageUrl').then(convertedPhotos => {
+          const rows = []
+          for (let i = 0; i < convertedPhotos.length; i += 2) {
+            rows.push(convertedPhotos.slice(i, i + 2))
+          }
           this.setData({
             photos: convertedPhotos,
+            photoRows: rows,
             loading: false
           })
         })
@@ -37,35 +85,7 @@ Page({
 
   // 转换云存储 File ID 为临时 URL
   convertCloudStorageUrls: function(data, fieldName) {
-    const fileIds = data
-      .filter(item => item[fieldName] && item[fieldName].startsWith('cloud://'))
-      .map(item => item[fieldName])
-    
-    if (fileIds.length === 0) {
-      return Promise.resolve(data)
-    }
-    
-    return wx.cloud.getTempFileURL({
-      fileList: fileIds
-    }).then(res => {
-      const urlMap = {}
-      res.fileList.forEach(file => {
-        urlMap[file.fileID] = file.tempFileURL
-      })
-      
-      return data.map(item => {
-        if (item[fieldName] && item[fieldName].startsWith('cloud://')) {
-          return {
-            ...item,
-            [fieldName]: urlMap[item[fieldName]] || item[fieldName]
-          }
-        }
-        return item
-      })
-    }).catch(err => {
-      console.error('转换云存储 URL 失败:', err)
-      return data
-    })
+    return cloudStorage.convertCloudStorageUrls(data, fieldName)
   },
 
   onPhotoTap(e) {

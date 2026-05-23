@@ -1,13 +1,18 @@
+const cloudStorage = require('../../utils/cloudStorage.js')
+
 Page({
   data: {
     featuredWorks: [],
+    featuredRows: [],
     loading: false,
     hasMore: true,
     skip: 0,
-    limit: 20
+    limit: 20,
+    albumName: '美丽瞬间'
   },
 
   onLoad: function () {
+    this.loadAlbumName()
     this.loadFeaturedWorks()
   },
 
@@ -17,7 +22,19 @@ Page({
       skip: 0,
       hasMore: true
     })
+    this.loadAlbumName()
     this.loadFeaturedWorks()
+  },
+
+  loadAlbumName() {
+    const db = wx.cloud.database()
+    db.collection('settings').doc('customerAlbum').get()
+      .then(res => {
+        if (res.data && res.data.albumName) {
+          this.setData({ albumName: res.data.albumName })
+        }
+      })
+      .catch(() => {})
   },
 
   loadFeaturedWorks() {
@@ -29,66 +46,77 @@ Page({
 
     const db = wx.cloud.database()
     const _ = db.command
-    db.collection('works')
-      .where({ isFeatured: true, enabled: true, hidden: _.neq(true) })
-      .orderBy('order', 'asc')
-      .skip(this.data.skip)
-      .limit(this.data.limit)
-      .get()
-      .then(res => {
-        const works = res.data.map(item => ({
-          ...item,
-          id: item._id,
-          coverUrl: item.coverImage || ''
-        }))
-        
-        // 转换云存储 File ID 为临时 URL
-        this.convertCloudStorageUrls(works, 'coverUrl').then(convertedWorks => {
-          this.setData({
-            featuredWorks: this.data.skip === 0 ? convertedWorks : [...this.data.featuredWorks, ...convertedWorks],
-            hasMore: convertedWorks.length >= this.data.limit,
-            loading: false,
-            skip: this.data.skip + convertedWorks.length
+
+    // 先获取隐藏的影集和子类ID
+    Promise.all([
+      db.collection('categories').where({ hidden: true }).get(),
+      db.collection('subcategories').where({ hidden: true }).get()
+    ]).then(([categoriesRes, subcategoriesRes]) => {
+      const hiddenCategoryIds = categoriesRes.data.map(c => c._id)
+      const hiddenSubcategoryIds = subcategoriesRes.data.map(s => s._id)
+
+      let query = db.collection('works')
+        .where({
+          isFeatured: true,
+          enabled: true,
+          hidden: _.neq(true)
+        })
+
+      // 排除隐藏影集下的作品
+      if (hiddenCategoryIds.length > 0) {
+        query = db.collection('works').where(
+          _.and([
+            { isFeatured: true, enabled: true, hidden: _.neq(true) },
+            { categoryId: _.nin(hiddenCategoryIds) }
+          ])
+        )
+      }
+
+      query.orderBy('order', 'asc')
+        .skip(this.data.skip)
+        .limit(this.data.limit)
+        .get()
+        .then(res => {
+          // 再过滤隐藏子类下的作品
+          let works = res.data
+          if (hiddenSubcategoryIds.length > 0) {
+            works = works.filter(w => !hiddenSubcategoryIds.includes(w.subcategoryId))
+          }
+
+          const mappedWorks = works.map(item => ({
+            ...item,
+            id: item._id,
+            coverUrl: item.coverImage || ''
+          }))
+          
+          // 转换云存储 File ID 为临时 URL
+          this.convertCloudStorageUrls(mappedWorks, 'coverUrl').then(convertedWorks => {
+            const rows = []
+            for (let i = 0; i < convertedWorks.length; i += 2) {
+              rows.push(convertedWorks.slice(i, i + 2))
+            }
+            this.setData({
+              featuredWorks: this.data.skip === 0 ? convertedWorks : [...this.data.featuredWorks, ...convertedWorks],
+              featuredRows: rows,
+              hasMore: convertedWorks.length >= this.data.limit,
+              loading: false,
+              skip: this.data.skip + convertedWorks.length
+            })
           })
         })
-      })
-      .catch(err => {
-        console.error('加载精华相册失败:', err)
-        this.setData({ loading: false })
-      })
+        .catch(err => {
+          console.error('加载精华相册失败:', err)
+          this.setData({ loading: false })
+        })
+    }).catch(err => {
+      console.error('获取隐藏分类失败:', err)
+      this.setData({ loading: false })
+    })
   },
 
   // 转换云存储 File ID 为临时 URL
   convertCloudStorageUrls: function(data, fieldName) {
-    const fileIds = data
-      .filter(item => item[fieldName] && item[fieldName].startsWith('cloud://'))
-      .map(item => item[fieldName])
-    
-    if (fileIds.length === 0) {
-      return Promise.resolve(data)
-    }
-    
-    return wx.cloud.getTempFileURL({
-      fileList: fileIds
-    }).then(res => {
-      const urlMap = {}
-      res.fileList.forEach(file => {
-        urlMap[file.fileID] = file.tempFileURL
-      })
-      
-      return data.map(item => {
-        if (item[fieldName] && item[fieldName].startsWith('cloud://')) {
-          return {
-            ...item,
-            [fieldName]: urlMap[item[fieldName]] || item[fieldName]
-          }
-        }
-        return item
-      })
-    }).catch(err => {
-      console.error('转换云存储 URL 失败:', err)
-      return data
-    })
+    return cloudStorage.convertCloudStorageUrls(data, fieldName)
   },
 
   onWorkTap(e) {
@@ -114,5 +142,14 @@ Page({
     setTimeout(() => {
       wx.stopPullDownRefresh()
     }, 500)
+  },
+
+  switchTab(e) {
+    const page = e.currentTarget.dataset.page
+    wx.switchTab({ url: page })
+  },
+
+  onBack() {
+    wx.navigateBack()
   }
 })

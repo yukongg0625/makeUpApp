@@ -13,7 +13,7 @@ exports.main = async (event, context) => {
     // 重要说明：微信云开发目前不支持通过代码直接修改集合权限
     // 此函数提供权限检查和设置指导
     
-    const collections = ['categories', 'subcategories', 'works', 'banners', 'featured']
+    const collections = ['categories', 'subcategories', 'works', 'banners', 'featured', 'customerPhotos', 'settings']
     const results = []
     
     // 检查每个集合的访问权限

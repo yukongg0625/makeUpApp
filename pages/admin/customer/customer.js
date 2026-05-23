@@ -1,9 +1,13 @@
 const app = getApp()
+const cloudStorage = require('../../../utils/cloudStorage.js')
 
 Page({
   data: {
     photos: [],
     loading: false,
+    albumName: '美丽瞬间',
+    showRenameModal: false,
+    newAlbumName: '',
     showModal: false,
     editMode: false,
     editId: '',
@@ -15,11 +19,28 @@ Page({
   },
 
   onLoad: function () {
+    this.loadAlbumName()
     this.loadPhotos()
   },
 
   onShow: function () {
+    this.loadAlbumName()
     this.loadPhotos()
+  },
+
+  loadAlbumName() {
+    const db = wx.cloud.database()
+    db.collection('settings').doc('customerAlbum').get()
+      .then(res => {
+        if (res.data && res.data.albumName) {
+          this.setData({ albumName: res.data.albumName })
+        }
+      })
+      .catch(err => {
+        if (err.errCode !== -502005) {
+          console.error('加载相册名称失败:', err)
+        }
+      })
   },
 
   loadPhotos() {
@@ -46,35 +67,7 @@ Page({
 
   // 转换云存储 File ID 为临时 URL
   convertCloudStorageUrls: function(data, fieldName) {
-    const fileIds = data
-      .filter(item => item[fieldName] && item[fieldName].startsWith('cloud://'))
-      .map(item => item[fieldName])
-    
-    if (fileIds.length === 0) {
-      return Promise.resolve(data)
-    }
-    
-    return wx.cloud.getTempFileURL({
-      fileList: fileIds
-    }).then(res => {
-      const urlMap = {}
-      res.fileList.forEach(file => {
-        urlMap[file.fileID] = file.tempFileURL
-      })
-      
-      return data.map(item => {
-        if (item[fieldName] && item[fieldName].startsWith('cloud://')) {
-          return {
-            ...item,
-            [fieldName]: urlMap[item[fieldName]] || item[fieldName]
-          }
-        }
-        return item
-      })
-    }).catch(err => {
-      console.error('转换云存储 URL 失败:', err)
-      return data
-    })
+    return cloudStorage.convertCloudStorageUrls(data, fieldName)
   },
 
   onAddPhoto() {
@@ -130,6 +123,76 @@ Page({
             })
           })
         }
+      }
+    })
+  },
+
+  onRenameAlbum() {
+    this.setData({
+      showRenameModal: true,
+      newAlbumName: this.data.albumName
+    })
+  },
+
+  onAlbumNameInput(e) {
+    this.setData({
+      newAlbumName: e.detail.value
+    })
+  },
+
+  onCloseRenameModal() {
+    this.setData({ showRenameModal: false })
+  },
+
+  onSaveAlbumName() {
+    const newAlbumName = this.data.newAlbumName.trim()
+    
+    if (!newAlbumName) {
+      wx.showToast({
+        title: '请输入相册名称',
+        icon: 'none'
+      })
+      return
+    }
+
+    wx.showLoading({ title: '保存中...' })
+
+    const db = wx.cloud.database()
+    db.collection('settings').doc('customerAlbum').set({
+      data: {
+        albumName: newAlbumName,
+        updateTime: new Date()
+      }
+    }).then(() => {
+      wx.hideLoading()
+      wx.showToast({
+        title: '保存成功',
+        icon: 'success'
+      })
+      this.setData({
+        albumName: newAlbumName,
+        showRenameModal: false
+      })
+      this.updateTabBarAlbumName(newAlbumName)
+    }).catch(err => {
+      console.error('保存相册名称失败:', err)
+      wx.hideLoading()
+      wx.showToast({
+        title: '保存失败',
+        icon: 'none'
+      })
+    })
+  },
+
+  updateTabBarAlbumName(albumName) {
+    const pages = getCurrentPages()
+    const indexPage = pages.find(p => p.route === 'pages/index/index')
+    const customerPage = pages.find(p => p.route === 'pages/customer/customer')
+    const contactPage = pages.find(p => p.route === 'pages/contact/contact')
+    
+    ;[indexPage, customerPage, contactPage].forEach(page => {
+      if (page && typeof page.getTabBar === 'function' && page.getTabBar()) {
+        page.getTabBar().setData({ albumName })
       }
     })
   },

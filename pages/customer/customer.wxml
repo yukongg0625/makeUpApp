@@ -1,22 +1,25 @@
 <view class="container">
   <!-- 标题 -->
   <view class="page-header">
-    <text class="header-title">美丽瞬间</text>
+    <text class="header-title">{{albumName || '美丽瞬间'}}</text>
     <text class="header-subtitle">记录每一位顾客的美丽时刻</text>
   </view>
 
   <!-- 作品网格 -->
   <view class="photo-grid">
-    <view 
-      class="photo-item" 
-      wx:for="{{photos}}" 
-      wx:key="_id"
-      bindtap="onPhotoTap"
-      data-id="{{item._id}}"
-    >
-      <image class="photo-image" src="{{item.imageUrl}}" mode="aspectFill" lazy-load="{{true}}" />
-      <view class="photo-overlay" wx:if="{{item.description}}">
-        <text class="photo-desc">{{item.description}}</text>
+    <view class="photo-row" wx:for="{{photoRows}}" wx:key="index">
+      <view 
+        class="photo-item" 
+        wx:for="{{item}}" 
+        wx:for-item="photo"
+        wx:key="_id"
+        bindtap="onPhotoTap"
+        data-id="{{photo._id}}"
+      >
+        <image class="photo-image" src="{{photo.imageUrl}}" mode="aspectFill" lazy-load="{{true}}" />
+        <view class="photo-overlay" wx:if="{{photo.description}}">
+          <text class="photo-desc">{{photo.description}}</text>
+        </view>
       </view>
     </view>
   </view>

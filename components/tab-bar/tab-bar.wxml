@@ -13,7 +13,7 @@
     data-index="1"
   >
     <image class="tab-icon" src="{{currentTab === 1 ? selectedIconPaths[1] : iconPaths[1]}}" mode="aspectFit"></image>
-    <text class="tab-text {{currentTab === 1 ? 'active' : ''}}">创意展示</text>
+    <text class="tab-text {{currentTab === 1 ? 'active' : ''}}">{{albumName}}</text>
   </view>
   <view 
     class="tab-item {{currentTab === 2 ? 'active' : ''}}" 

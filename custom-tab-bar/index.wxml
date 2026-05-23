@@ -1,0 +1,25 @@
+<view class="tab-bar">
+  <view 
+    class="tab-item {{selected === 0 ? 'active' : ''}}" 
+    bindtap="switchTab" 
+    data-index="0"
+  >
+    <image class="tab-icon" src="{{selected === 0 ? list[0].selectedIconPath : list[0].iconPath}}" mode="aspectFit"></image>
+    <text class="tab-text {{selected === 0 ? 'active' : ''}}">{{list[0].text}}</text>
+  </view>
+  <view 
+    class="tab-item {{selected === 1 ? 'active' : ''}}" 
+    bindtap="onMiddleTabTap"
+  >
+    <image class="tab-icon" src="{{middleTab.selectedIconPath || (selected === 1 ? list[1].selectedIconPath : list[1].iconPath)}}" mode="aspectFit"></image>
+    <text class="tab-text {{selected === 1 ? 'active' : ''}}">{{middleTab.text || albumName}}</text>
+  </view>
+  <view 
+    class="tab-item {{selected === 2 ? 'active' : ''}}" 
+    bindtap="switchTab" 
+    data-index="2"
+  >
+    <image class="tab-icon" src="{{selected === 2 ? list[2].selectedIconPath : list[2].iconPath}}" mode="aspectFit"></image>
+    <text class="tab-text {{selected === 2 ? 'active' : ''}}">{{list[2].text}}</text>
+  </view>
+</view>

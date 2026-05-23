@@ -1,7 +1,9 @@
 // pages/admin/featured/featured.js
+const cloudStorage = require('../../../utils/cloudStorage.js')
 Page({
   data: {
     works: [],
+    availableWorks: [],
     featured: [],
     workTitles: [],
     loading: true,
@@ -39,10 +41,22 @@ Page({
           works: works,
           workTitles: workTitles
         })
+        
+        // 加载精华作品后过滤可用作品
+        this.updateAvailableWorks()
       })
       .catch(err => {
         console.error('加载作品失败:', err)
       })
+  },
+
+  updateAvailableWorks: function () {
+    const featuredWorkIds = this.data.featured.map(item => item.workId)
+    const availableWorks = this.data.works.filter(work => !featuredWorkIds.includes(work._id))
+    
+    this.setData({
+      availableWorks: availableWorks
+    })
   },
 
   loadFeatured: function () {
@@ -69,6 +83,8 @@ Page({
             featured: convertedFeatured,
             loading: false
           })
+          // 更新可用作品列表
+          this.updateAvailableWorks()
         })
       })
       .catch(err => {
@@ -79,35 +95,7 @@ Page({
 
   // 转换云存储 File ID 为临时 URL
   convertCloudStorageUrls: function(data, fieldName) {
-    const fileIds = data
-      .filter(item => item[fieldName] && item[fieldName].startsWith('cloud://'))
-      .map(item => item[fieldName])
-    
-    if (fileIds.length === 0) {
-      return Promise.resolve(data)
-    }
-    
-    return wx.cloud.getTempFileURL({
-      fileList: fileIds
-    }).then(res => {
-      const urlMap = {}
-      res.fileList.forEach(file => {
-        urlMap[file.fileID] = file.tempFileURL
-      })
-      
-      return data.map(item => {
-        if (item[fieldName] && item[fieldName].startsWith('cloud://')) {
-          return {
-            ...item,
-            [fieldName]: urlMap[item[fieldName]] || item[fieldName]
-          }
-        }
-        return item
-      })
-    }).catch(err => {
-      console.error('转换云存储 URL 失败:', err)
-      return data
-    })
+    return cloudStorage.convertCloudStorageUrls(data, fieldName)
   },
 
   onAddFeatured: function () {
@@ -164,6 +152,10 @@ Page({
   deleteFeatured: function (id) {
     wx.showLoading({ title: '删除中...' })
     
+    const db = wx.cloud.database()
+    const featured = this.data.featured.find(item => item._id === id)
+    
+    // 先删除 featured 集合记录
     wx.cloud.callFunction({
       name: 'deleteDocument',
       data: {
@@ -171,23 +163,40 @@ Page({
         id: id
       }
     }).then(res => {
-      wx.hideLoading()
       if (res.result && res.result.success) {
-        wx.showToast({ title: '删除成功', icon: 'success' })
-        this.loadFeatured()
+        // 同步更新 works 集合的 isFeatured 字段
+        if (featured && featured.workId) {
+          db.collection('works').doc(featured.workId).update({
+            data: { isFeatured: false }
+          }).then(() => {
+            wx.hideLoading()
+            wx.showToast({ title: '移出成功', icon: 'success' })
+            this.loadFeatured()
+          }).catch(err => {
+            wx.hideLoading()
+            wx.showToast({ title: '移出成功，但同步状态失败', icon: 'none' })
+            console.error('更新作品精华状态失败:', err)
+            this.loadFeatured()
+          })
+        } else {
+          wx.hideLoading()
+          wx.showToast({ title: '移出成功', icon: 'success' })
+          this.loadFeatured()
+        }
       } else {
-        wx.showToast({ title: res.result.message || '删除失败', icon: 'error' })
+        wx.hideLoading()
+        wx.showToast({ title: res.result.message || '移出失败', icon: 'error' })
       }
     }).catch(err => {
       wx.hideLoading()
-      wx.showToast({ title: '删除失败', icon: 'error' })
+      wx.showToast({ title: '移出失败', icon: 'error' })
       console.error('删除精华作品失败:', err)
     })
   },
 
   onWorkPickerChange: function (e) {
     const index = parseInt(e.detail.value)
-    const work = this.data.works[index]
+    const work = this.data.availableWorks[index]
     
     this.setData({
       'formData.workId': work._id,
@@ -242,10 +251,21 @@ Page({
       db.collection('featured').doc(this.data.editId).update({
         data: data
       }).then(() => {
-        wx.hideLoading()
-        wx.showToast({ title: '保存成功', icon: 'success' })
-        this.onCloseModal()
-        this.loadFeatured()
+        // 同步更新 works 集合的 isFeatured 字段
+        db.collection('works').doc(workId).update({
+          data: { isFeatured: true }
+        }).then(() => {
+          wx.hideLoading()
+          wx.showToast({ title: '保存成功', icon: 'success' })
+          this.onCloseModal()
+          this.loadFeatured()
+        }).catch(err => {
+          wx.hideLoading()
+          wx.showToast({ title: '保存成功，但同步状态失败', icon: 'none' })
+          console.error('更新作品精华状态失败:', err)
+          this.onCloseModal()
+          this.loadFeatured()
+        })
       }).catch(err => {
         wx.hideLoading()
         wx.showToast({ title: '保存失败', icon: 'error' })
@@ -255,10 +275,21 @@ Page({
       db.collection('featured').add({
         data: data
       }).then(() => {
-        wx.hideLoading()
-        wx.showToast({ title: '添加成功', icon: 'success' })
-        this.onCloseModal()
-        this.loadFeatured()
+        // 同步更新 works 集合的 isFeatured 字段
+        db.collection('works').doc(workId).update({
+          data: { isFeatured: true }
+        }).then(() => {
+          wx.hideLoading()
+          wx.showToast({ title: '添加成功', icon: 'success' })
+          this.onCloseModal()
+          this.loadFeatured()
+        }).catch(err => {
+          wx.hideLoading()
+          wx.showToast({ title: '添加成功，但同步状态失败', icon: 'none' })
+          console.error('更新作品精华状态失败:', err)
+          this.onCloseModal()
+          this.loadFeatured()
+        })
       }).catch(err => {
         wx.hideLoading()
         wx.showToast({ title: '添加失败', icon: 'error' })

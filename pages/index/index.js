@@ -1,4 +1,5 @@
 const app = getApp()
+const cloudStorage = require('../../utils/cloudStorage.js')
 
 Page({
   data: {
@@ -15,6 +16,28 @@ Page({
   onShow: function () {
     this.loadFeatures()
     this.loadFeaturedWorks()
+    this.updateTabBar()
+  },
+
+  updateTabBar() {
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      const db = wx.cloud.database()
+      db.collection('settings').doc('customerAlbum').get()
+        .then(res => {
+          if (res.data && res.data.albumName) {
+            this.getTabBar().setData({
+              selected: 0,
+              albumName: res.data.albumName,
+              middleTab: null
+            })
+          } else {
+            this.getTabBar().setData({ selected: 0, middleTab: null })
+          }
+        })
+        .catch(() => {
+          this.getTabBar().setData({ selected: 0, middleTab: null })
+        })
+    }
   },
 
   loadFeatures() {
@@ -76,81 +99,7 @@ Page({
   },
 
   convertCloudStorageUrls(data, fieldName) {
-    console.log('开始转换云存储 URL, 字段:', fieldName)
-    console.log('原始数据:', data)
-
-    const fileIds = data
-      .filter(item => item[fieldName] && item[fieldName].startsWith('cloud://'))
-      .map(item => item[fieldName])
-
-    console.log('需要转换的 File IDs:', fileIds)
-
-    if (fileIds.length === 0) {
-      console.log('没有需要转换的 File ID')
-      return Promise.resolve(data)
-    }
-
-    return this.tryGetTempUrlsWithFallback(fileIds)
-      .then(urlMap => {
-        const result = data.map(item => {
-          if (item[fieldName] && item[fieldName].startsWith('cloud://')) {
-            const newUrl = urlMap[item[fieldName]] || item[fieldName]
-            console.log('替换 URL:', item[fieldName], '->', newUrl)
-            return {
-              ...item,
-              [fieldName]: newUrl
-            }
-          }
-          return item
-        })
-        console.log('转换后的数据:', result)
-        return result
-      })
-  },
-
-  tryGetTempUrlsWithFallback(fileIds) {
-    return new Promise((resolve, reject) => {
-      wx.cloud.callFunction({
-        name: 'getImageUrl',
-        data: {
-          action: 'getTempFileURL',
-          fileList: fileIds
-        },
-        success: res => {
-          console.log('getImageUrl 云函数返回结果:', res)
-          if (res.result && res.result.success) {
-            resolve(res.result.urlMap || {})
-          } else {
-            console.warn('云函数返回失败，降级到前端获取')
-            this.getTempUrlsDirectly(fileIds).then(resolve).catch(reject)
-          }
-        },
-        fail: err => {
-          console.warn('调用云函数失败，降级到前端获取:', err)
-          this.getTempUrlsDirectly(fileIds).then(resolve).catch(reject)
-        }
-      })
-    })
-  },
-
-  getTempUrlsDirectly(fileIds) {
-    return new Promise((resolve, reject) => {
-      wx.cloud.getTempFileURL({
-        fileList: fileIds
-      }).then(res => {
-        console.log('前端直接获取 temp URL:', res)
-        const urlMap = {}
-        res.fileList.forEach(file => {
-          if (file.status === 0) {
-            urlMap[file.fileID] = file.tempFileURL
-          }
-        })
-        resolve(urlMap)
-      }).catch(err => {
-        console.error('前端获取 temp URL 失败:', err)
-        reject(err)
-      })
-    })
+    return cloudStorage.convertCloudStorageUrls(data, fieldName)
   },
 
   getFallbackFeatures() {
@@ -175,25 +124,97 @@ Page({
       .limit(10)
       .get()
       .then(res => {
-        const featured = res.data.map(item => ({
-          ...item,
-          coverUrl: item.coverImage || ''
-        }))
-
-        this.convertCloudStorageUrls(featured, 'coverUrl')
-          .then(featuredWorks => {
-            this.setData({
-              featuredWorks: featuredWorks,
-              loading: false
-            })
+        const featured = res.data
+        
+        if (featured.length === 0) {
+          this.setData({
+            featuredWorks: [],
+            loading: false
           })
-          .catch(err => {
-            console.error('转换图片 URL 失败:', err)
-            this.setData({
-              featuredWorks: featured,
-              loading: false
-            })
+          return
+        }
+        
+        const workIds = featured.map(item => item.workId).filter(id => id)
+        
+        if (workIds.length === 0) {
+          this.setData({
+            featuredWorks: [],
+            loading: false
           })
+          return
+        }
+        
+        // 获取隐藏的影集和子类ID
+        Promise.all([
+          db.collection('categories').where({ hidden: true }).get(),
+          db.collection('subcategories').where({ hidden: true }).get()
+        ]).then(([categoriesRes, subcategoriesRes]) => {
+          const hiddenCategoryIds = categoriesRes.data.map(c => c._id)
+          const hiddenSubcategoryIds = subcategoriesRes.data.map(s => s._id)
+          
+          let conditions = {
+            _id: _.in(workIds),
+            enabled: true,
+            hidden: _.neq(true)
+          }
+          
+          if (hiddenCategoryIds.length > 0) {
+            conditions.categoryId = _.nin(hiddenCategoryIds)
+          }
+          
+          db.collection('works')
+            .where(conditions)
+            .get()
+            .then(worksRes => {
+              let works = worksRes.data
+              
+              // 过滤隐藏子类下的作品
+              if (hiddenSubcategoryIds.length > 0) {
+                works = works.filter(w => !hiddenSubcategoryIds.includes(w.subcategoryId))
+              }
+              
+              const worksMap = {}
+              works.forEach(work => {
+                worksMap[work._id] = work
+              })
+              
+              const featuredWorks = featured
+                .filter(item => worksMap[item.workId])
+                .map(item => {
+                  const work = worksMap[item.workId]
+                  const coverImage = work ? work.coverImage : item.coverImage
+                  return {
+                    ...item,
+                    coverUrl: coverImage || ''
+                  }
+                })
+              
+              this.convertCloudStorageUrls(featuredWorks, 'coverUrl')
+                .then(featuredWorks => {
+                  this.setData({
+                    featuredWorks: featuredWorks,
+                    loading: false
+                  })
+                })
+                .catch(err => {
+                  console.error('转换图片 URL 失败:', err)
+                  this.setData({
+                    featuredWorks: featuredWorks,
+                    loading: false
+                  })
+                })
+            })
+            .catch(err => {
+              console.error('查询作品信息失败:', err)
+              this.setData({
+                featuredWorks: [],
+                loading: false
+              })
+            })
+        }).catch(err => {
+          console.error('获取隐藏分类失败:', err)
+          this.setData({ loading: false })
+        })
       })
       .catch(err => {
         console.error('加载精华相册失败:', err)
