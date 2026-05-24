@@ -308,6 +308,14 @@ Page({
   },
 
   onAddWork: function () {
+    if (this.data.selectedCategoryIndex === -1 || this.data.selectedSubcategoryIndex === -1) {
+      wx.showToast({
+        title: '请先选择影集和子类',
+        icon: 'none'
+      })
+      return
+    }
+    
     const selectedCategoryId = this.data.selectedCategoryIndex === -1 ? '' : this.data.categories[this.data.selectedCategoryIndex]._id
     const selectedCategoryName = this.data.selectedCategoryIndex === -1 ? '' : this.data.categories[this.data.selectedCategoryIndex].name
     const selectedSubcategoryId = this.data.selectedSubcategoryIndex === -1 ? '' : this.data.subcategories[this.data.selectedSubcategoryIndex]._id

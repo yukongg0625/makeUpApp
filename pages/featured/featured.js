@@ -58,15 +58,14 @@ Page({
       let query = db.collection('works')
         .where({
           isFeatured: true,
-          enabled: true,
-          hidden: _.neq(true)
+          enabled: true
         })
 
       // 排除隐藏影集下的作品
       if (hiddenCategoryIds.length > 0) {
         query = db.collection('works').where(
           _.and([
-            { isFeatured: true, enabled: true, hidden: _.neq(true) },
+            { isFeatured: true, enabled: true },
             { categoryId: _.nin(hiddenCategoryIds) }
           ])
         )
@@ -77,8 +76,12 @@ Page({
         .limit(this.data.limit)
         .get()
         .then(res => {
-          // 再过滤隐藏子类下的作品
-          let works = res.data
+          // 过滤隐藏作品和隐藏子类下的作品
+          let works = res.data.filter(w => {
+            const hidden = w.hidden
+            if (hidden === true || hidden === 'true') return false
+            return true
+          })
           if (hiddenSubcategoryIds.length > 0) {
             works = works.filter(w => !hiddenSubcategoryIds.includes(w.subcategoryId))
           }

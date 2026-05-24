@@ -9,13 +9,19 @@ Page({
   },
 
   onLoad: function () {
+    // 串行加载，避免并发压力导致超时
     this.loadFeatures()
     this.loadFeaturedWorks()
   },
 
   onShow: function () {
-    this.loadFeatures()
-    this.loadFeaturedWorks()
+    // 只在首次加载，避免重复请求
+    if (this.data.features.length === 0) {
+      this.loadFeatures()
+    }
+    if (this.data.featuredWorks.length === 0) {
+      this.loadFeaturedWorks()
+    }
     this.updateTabBar()
   },
 
@@ -118,60 +124,64 @@ Page({
     const db = wx.cloud.database()
     const _ = db.command
 
-    db.collection('featured')
-      .where({ _id: _.exists(true) })
-      .orderBy('order', 'asc')
-      .limit(10)
-      .get()
-      .then(res => {
-        const featured = res.data
-        
-        if (featured.length === 0) {
-          this.setData({
-            featuredWorks: [],
-            loading: false
-          })
-          return
-        }
-        
-        const workIds = featured.map(item => item.workId).filter(id => id)
-        
-        if (workIds.length === 0) {
-          this.setData({
-            featuredWorks: [],
-            loading: false
-          })
-          return
-        }
-        
-        // 获取隐藏的影集和子类ID
-        Promise.all([
-          db.collection('categories').where({ hidden: true }).get(),
-          db.collection('subcategories').where({ hidden: true }).get()
-        ]).then(([categoriesRes, subcategoriesRes]) => {
-          const hiddenCategoryIds = categoriesRes.data.map(c => c._id)
-          const hiddenSubcategoryIds = subcategoriesRes.data.map(s => s._id)
+    // 先获取隐藏的影集和子类ID，减少后续查询范围
+    Promise.all([
+      db.collection('categories').where({ hidden: true }).field({ _id: true }).get(),
+      db.collection('subcategories').where({ hidden: true }).field({ _id: true }).get()
+    ]).then(([categoriesRes, subcategoriesRes]) => {
+      const hiddenCategoryIds = categoriesRes.data.map(c => c._id)
+      const hiddenSubcategoryIds = subcategoriesRes.data.map(s => s._id)
+      
+      // 获取精华作品列表
+      return db.collection('featured')
+        .where({ _id: _.exists(true) })
+        .orderBy('order', 'asc')
+        .limit(10)
+        .get()
+        .then(res => {
+          const featured = res.data
+          
+          if (featured.length === 0) {
+            this.setData({
+              featuredWorks: [],
+              loading: false
+            })
+            return
+          }
+          
+          const workIds = featured.map(item => item.workId).filter(id => id)
+          
+          if (workIds.length === 0) {
+            this.setData({
+              featuredWorks: [],
+              loading: false
+            })
+            return
+          }
           
           let conditions = {
             _id: _.in(workIds),
-            enabled: true,
-            hidden: _.neq(true)
+            enabled: true
           }
           
           if (hiddenCategoryIds.length > 0) {
             conditions.categoryId = _.nin(hiddenCategoryIds)
           }
           
-          db.collection('works')
+          return db.collection('works')
             .where(conditions)
+            .field({ _id: true, title: true, coverImage: true, categoryId: true, subcategoryId: true })
             .get()
             .then(worksRes => {
               let works = worksRes.data
               
-              // 过滤隐藏子类下的作品
-              if (hiddenSubcategoryIds.length > 0) {
-                works = works.filter(w => !hiddenSubcategoryIds.includes(w.subcategoryId))
-              }
+              // 过滤隐藏作品和隐藏子类下的作品
+              works = works.filter(w => {
+                const hidden = w.hidden
+                if (hidden === true || hidden === 'true') return false
+                if (hiddenSubcategoryIds.length > 0 && hiddenSubcategoryIds.includes(w.subcategoryId)) return false
+                return true
+              })
               
               const worksMap = {}
               works.forEach(work => {
@@ -204,22 +214,14 @@ Page({
                   })
                 })
             })
-            .catch(err => {
-              console.error('查询作品信息失败:', err)
-              this.setData({
-                featuredWorks: [],
-                loading: false
-              })
-            })
-        }).catch(err => {
-          console.error('获取隐藏分类失败:', err)
-          this.setData({ loading: false })
         })
+    }).catch(err => {
+      console.error('加载精华作品失败:', err)
+      this.setData({
+        featuredWorks: [],
+        loading: false
       })
-      .catch(err => {
-        console.error('加载精华相册失败:', err)
-        this.setData({ loading: false })
-      })
+    })
   },
 
   onFeatureTap(e) {

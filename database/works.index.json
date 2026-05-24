@@ -65,6 +65,36 @@
           "direction": "desc"
         }
       ]
+    },
+    {
+      "name": "work_hidden_idx",
+      "type": "index",
+      "direction": "asc",
+      "fields": [
+        {
+          "name": "hidden",
+          "direction": "asc"
+        }
+      ]
+    },
+    {
+      "name": "work_enabled_id_hidden_idx",
+      "type": "index",
+      "direction": "asc",
+      "fields": [
+        {
+          "name": "enabled",
+          "direction": "asc"
+        },
+        {
+          "name": "_id",
+          "direction": "asc"
+        },
+        {
+          "name": "hidden",
+          "direction": "asc"
+        }
+      ]
     }
   ]
 }

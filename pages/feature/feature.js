@@ -119,8 +119,7 @@ Page({
 
     const whereCondition = {
       categoryId: categoryId,
-      enabled: true,
-      hidden: _.neq(true)
+      enabled: true
     }
 
     if (subcategoryId !== 'all') {
@@ -132,10 +131,16 @@ Page({
       .orderBy('order', 'asc')
       .get()
       .then(res => {
-        const works = res.data.map(item => ({
-          ...item,
-          coverUrl: item.coverImage || ''
-        }))
+        // 过滤隐藏作品
+        const works = res.data
+          .filter(w => {
+            const hidden = w.hidden
+            return hidden !== true && hidden !== 'true'
+          })
+          .map(item => ({
+            ...item,
+            coverUrl: item.coverImage || ''
+          }))
 
         this.convertCloudStorageUrls(works, 'coverUrl').then(convertedWorks => {
           const validWorks = convertedWorks.filter(work => work.coverUrl && work.coverUrl.length > 0)

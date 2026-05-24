@@ -17,7 +17,7 @@ Page({
 
   loadContactInfo: function () {
     const db = wx.cloud.database()
-    db.collection('contactInfo').get().then(res => {
+    db.collection('contactInfo').limit(1).get().then(res => {
       if (res.data.length > 0) {
         const contactInfo = res.data[0]
         this.setData({
@@ -87,7 +87,7 @@ Page({
     const db = wx.cloud.database()
     
     // 先检查是否已有数据
-    db.collection('contactInfo').get().then(res => {
+    db.collection('contactInfo').limit(1).get().then(res => {
       if (res.data.length > 0) {
         // 更新现有数据
         const docId = res.data[0]._id

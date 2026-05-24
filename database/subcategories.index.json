@@ -1,7 +1,18 @@
 {
   "indexes": [
     {
-      "name": "category_order_idx",
+      "name": "subcategory_category_idx",
+      "type": "index",
+      "direction": "asc",
+      "fields": [
+        {
+          "name": "categoryId",
+          "direction": "asc"
+        }
+      ]
+    },
+    {
+      "name": "subcategory_order_idx",
       "type": "index",
       "direction": "asc",
       "fields": [
@@ -12,18 +23,7 @@
       ]
     },
     {
-      "name": "category_enabled_idx",
-      "type": "index",
-      "direction": "asc",
-      "fields": [
-        {
-          "name": "enabled",
-          "direction": "asc"
-        }
-      ]
-    },
-    {
-      "name": "category_hidden_idx",
+      "name": "subcategory_hidden_idx",
       "type": "index",
       "direction": "asc",
       "fields": [
@@ -34,7 +34,7 @@
       ]
     },
     {
-      "name": "category_order_id_idx",
+      "name": "subcategory_order_id_idx",
       "type": "index",
       "direction": "asc",
       "fields": [

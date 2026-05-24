@@ -79,7 +79,7 @@ Page({
 
   loadContactInfo: function () {
     const db = wx.cloud.database()
-    db.collection('contactInfo').get().then(res => {
+    db.collection('contactInfo').limit(1).get().then(res => {
       console.log('联系信息查询结果:', res)
       if (res.data.length > 0) {
         const info = res.data[0]
