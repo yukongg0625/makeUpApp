@@ -127,6 +127,10 @@ Page({
     console.error('图片加载失败:', e.detail)
   },
 
+  onImageLoad: function(e) {
+    // 图片加载成功
+  },
+
   convertCloudStorageUrls: function(fileIds) {
     if (!fileIds || !Array.isArray(fileIds)) {
       return Promise.resolve([])
