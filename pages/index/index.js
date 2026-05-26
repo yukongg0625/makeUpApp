@@ -252,5 +252,13 @@ Page({
     setTimeout(() => {
       wx.stopPullDownRefresh()
     }, 500)
+  },
+
+  onShareAppMessage() {
+    return {
+      title: '潘潘的美妝穿搭合集',
+      path: '/pages/index/index',
+      imageUrl: ''
+    }
   }
 })

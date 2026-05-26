@@ -104,5 +104,13 @@ Page({
     setTimeout(() => {
       wx.stopPullDownRefresh()
     }, 500)
+  },
+
+  onShareAppMessage() {
+    return {
+      title: this.data.albumName || '美丽瞬间 - 潘潘的美妝穿搭合集',
+      path: '/pages/customer/customer',
+      imageUrl: ''
+    }
   }
 })

@@ -185,5 +185,13 @@ Page({
     wx.navigateTo({
       url: '/pages/detail/detail?id=' + workId
     })
+  },
+
+  onShareAppMessage() {
+    return {
+      title: this.data._categoryName || '潘潘的美妝穿搭合集',
+      path: `/pages/feature/feature?id=${this.data._categoryId}&name=${encodeURIComponent(this.data._categoryName || '')}`,
+      imageUrl: ''
+    }
   }
 })

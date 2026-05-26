@@ -142,5 +142,13 @@ Page({
     wx.navigateTo({
       url: '/pages/admin/admin'
     })
+  },
+
+  onShareAppMessage() {
+    return {
+      title: '联系我们 - 潘潘的美妝穿搭合集',
+      path: '/pages/contact/contact',
+      imageUrl: ''
+    }
   }
 })

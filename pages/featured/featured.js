@@ -154,5 +154,13 @@ Page({
 
   onBack() {
     wx.navigateBack()
+  },
+
+  onShareAppMessage() {
+    return {
+      title: '精选作品 - 潘潘的美妝穿搭合集',
+      path: '/pages/featured/featured',
+      imageUrl: ''
+    }
   }
 })
