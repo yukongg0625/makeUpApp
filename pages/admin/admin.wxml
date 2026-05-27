@@ -70,4 +70,9 @@
       <text class="arrow">›</text>
     </view>
   </view>
+
+  <!-- 版本号显示 -->
+  <view class="version-info">
+    <text class="version-text">版本号: {{version}}</text>
+  </view>
 </view>
