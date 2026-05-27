@@ -76,7 +76,6 @@
 }
 
 .avatar-button {
-  position: relative;
   width: 160rpx;
   height: 160rpx;
   border-radius: 50%;
@@ -87,6 +86,7 @@
   border: none;
   padding: 0;
   overflow: hidden;
+  line-height: 1;
 }
 
 .avatar-button::after {
