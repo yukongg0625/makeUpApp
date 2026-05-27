@@ -21,22 +21,13 @@ Page({
     contactMessage: '',
     showImageSavedTip: false,
     middleTabText: '美丽瞬间',
-    middleTabUrl: '',
-    
-    likes: 0,
-    isLiked: false,
-    comments: [],
-    commentText: '',
-    showComments: false,
-    loginModalVisible: false
+    middleTabUrl: ''
   },
 
   onLoad: function (options) {
     if (options.id) {
       this.setData({ workId: options.id })
       this.loadWorkDetail(options.id)
-      this.loadLikes(options.id)
-      this.loadComments(options.id)
     }
     this.loadContactInfo()
   },
@@ -113,56 +104,6 @@ Page({
       })
   },
 
-  loadLikes(workId) {
-    const db = wx.cloud.database()
-    const _ = db.command
-    
-    Promise.all([
-      db.collection('likes').where({ workId: workId }).count(),
-      db.collection('likes').where({
-        workId: workId,
-        userId: _.eq(getApp().globalData.userId)
-      }).get()
-    ]).then(([countRes, likeRes]) => {
-      this.setData({
-        likes: countRes.total || 0,
-        isLiked: likeRes.data && likeRes.data.length > 0
-      })
-    }).catch(err => {
-      console.error('加载点赞数据失败:', err)
-    })
-  },
-
-  loadComments(workId) {
-    const db = wx.cloud.database()
-    
-    db.collection('comments')
-      .where({ workId: workId })
-      .orderBy('createTime', 'desc')
-      .get()
-      .then(res => {
-        const comments = res.data.map(comment => ({
-          ...comment,
-          avatarUrl: comment.avatarUrl || '',
-          nickName: comment.nickName || '匿名用户',
-          createTime: this.formatTime(comment.createTime)
-        }))
-        this.setData({ comments })
-      }).catch(err => {
-        console.error('加载评论失败:', err)
-      })
-  },
-
-  formatTime(date) {
-    if (!date) return ''
-    const d = new Date(date)
-    const month = (d.getMonth() + 1).toString().padStart(2, '0')
-    const day = d.getDate().toString().padStart(2, '0')
-    const hour = d.getHours().toString().padStart(2, '0')
-    const minute = d.getMinutes().toString().padStart(2, '0')
-    return `${month}-${day} ${hour}:${minute}`
-  },
-
   updateTabBar() {
     const subcategoryName = this.data.workInfo.subcategoryName || ''
     const categoryId = this.data.categoryId || ''
@@ -187,6 +128,7 @@ Page({
   },
 
   onImageLoad: function(e) {
+    // 图片加载成功
   },
 
   convertCloudStorageUrls: function(fileIds) {
@@ -391,110 +333,5 @@ Page({
     } else {
       wx.switchTab({ url: '/pages/customer/customer' })
     }
-  },
-
-  onLikeTap() {
-    const app = getApp()
-    if (!app.globalData.userId) {
-      this.setData({ loginModalVisible: true })
-      return
-    }
-
-    const db = wx.cloud.database()
-    const workId = this.data.workId
-    const userId = app.globalData.userId
-
-    if (this.data.isLiked) {
-      db.collection('likes').where({
-        workId: workId,
-        userId: userId
-      }).get().then(res => {
-        if (res.data && res.data.length > 0) {
-          return db.collection('likes').doc(res.data[0]._id).remove()
-        }
-      }).then(() => {
-        this.setData({
-          likes: this.data.likes - 1,
-          isLiked: false
-        })
-      }).catch(err => {
-        console.error('取消点赞失败:', err)
-      })
-    } else {
-      db.collection('likes').add({
-        data: {
-          workId: workId,
-          userId: userId,
-          createTime: db.serverDate()
-        }
-      }).then(() => {
-        this.setData({
-          likes: this.data.likes + 1,
-          isLiked: true
-        })
-      }).catch(err => {
-        console.error('点赞失败:', err)
-      })
-    }
-  },
-
-  onShowComments() {
-    this.setData({ showComments: true })
-  },
-
-  onHideComments() {
-    this.setData({ showComments: false })
-  },
-
-  onCommentInput(e) {
-    this.setData({ commentText: e.detail.value })
-  },
-
-  onSubmitComment() {
-    const app = getApp()
-    if (!app.globalData.userId) {
-      this.setData({ loginModalVisible: true })
-      return
-    }
-
-    const commentText = this.data.commentText.trim()
-    if (!commentText) {
-      wx.showToast({ title: '请输入评论内容', icon: 'none' })
-      return
-    }
-
-    const db = wx.cloud.database()
-    db.collection('comments').add({
-      data: {
-        workId: this.data.workId,
-        userId: app.globalData.userId,
-        nickName: app.globalData.userInfo.nickName,
-        avatarUrl: app.globalData.userInfo.avatarUrl,
-        content: commentText,
-        createTime: db.serverDate()
-      }
-    }).then(() => {
-      wx.showToast({ title: '评论成功', icon: 'success' })
-      this.setData({ commentText: '' })
-      this.loadComments(this.data.workId)
-    }).catch(err => {
-      console.error('发表评论失败:', err)
-      wx.showToast({ title: '评论失败', icon: 'error' })
-    })
-  },
-
-  onLogin() {
-    const app = getApp()
-    app.login().then(() => {
-      this.setData({ loginModalVisible: false })
-      wx.showToast({ title: '登录成功', icon: 'success' })
-    }).catch(err => {
-      console.error('登录失败:', err)
-      wx.showToast({ title: '登录失败', icon: 'error' })
-    })
-  },
-
-  onCloseLoginModal() {
-    this.setData({ loginModalVisible: false })
   }
 })
