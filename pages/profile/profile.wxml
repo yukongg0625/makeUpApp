@@ -2,18 +2,47 @@
   <!-- 用户信息区域 -->
   <view class="user-section">
     <block wx:if="{{isLoggedIn}}">
-      <image class="avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill" />
+      <image 
+        class="avatar" 
+        src="{{userInfo.avatarUrl || '/images/default-avatar.png'}}" 
+        mode="aspectFill" 
+      />
       <view class="user-info">
-        <text class="nickname">{{userInfo.nickName}}</text>
+        <text class="nickname">{{userInfo.nickName || '微信用户'}}</text>
         <text class="user-id">ID: {{userId}}</text>
       </view>
       <button class="logout-btn" bindtap="onLogout">退出登录</button>
     </block>
     <block wx:else>
-      <view class="avatar-placeholder">👤</view>
-      <view class="login-prompt">
-        <text class="login-text">登录后可使用更多功能</text>
-        <button class="login-btn" bindtap="onLogin">微信登录</button>
+      <view class="login-form">
+        <view class="avatar-upload">
+          <button 
+          class="avatar-button" 
+          open-type="chooseAvatar" 
+          bind:chooseavatar="onChooseAvatar"
+        >
+          <image 
+            class="avatar-preview" 
+            src="{{tempAvatarUrl || '/images/default-avatar.png'}}" 
+            mode="aspectFill"
+          ></image>
+          <text class="avatar-hint">点击选择头像</text>
+        </button>
+        </view>
+        <view class="nickname-input-wrapper">
+          <input 
+            class="nickname-input" 
+            type="nickname" 
+            placeholder="请输入昵称" 
+            bind:input="onNicknameInput"
+            value="{{tempNickname}}"
+          />
+        </view>
+        <button 
+          class="login-btn" 
+          bindtap="onLogin"
+          disabled="{{!tempAvatarUrl || !tempNickname}}"
+        >登录</button>
       </view>
     </block>
   </view>

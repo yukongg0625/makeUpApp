@@ -65,48 +65,46 @@ App({
     })
   },
 
-  login: function() {
+  login: function(userData) {
     return new Promise((resolve, reject) => {
       const app = this
-      wx.getUserProfile({
-        desc: '用于完善会员资料',
-        success: (res) => {
-          const userProfile = res.userInfo
-          app.globalData.userInfo = userProfile
-          
-          const db = wx.cloud.database()
-          db.collection('users').where({
-            openid: app.globalData.currentOpenId
-          }).get().then(userRes => {
-            if (userRes.data && userRes.data.length > 0) {
-              app.globalData.userId = userRes.data[0]._id
-              db.collection('users').doc(userRes.data[0]._id).update({
-                data: {
-                  nickName: userProfile.nickName,
-                  avatarUrl: userProfile.avatarUrl,
-                  updateTime: db.serverDate()
-                }
-              }).then(() => {
-                resolve({ userId: app.globalData.userId, userInfo: userProfile })
-              }).catch(reject)
-            } else {
-              db.collection('users').add({
-                data: {
-                  openid: app.globalData.currentOpenId,
-                  nickName: userProfile.nickName,
-                  avatarUrl: userProfile.avatarUrl,
-                  createTime: db.serverDate(),
-                  updateTime: db.serverDate()
-                }
-              }).then(addRes => {
-                app.globalData.userId = addRes._id
-                resolve({ userId: addRes._id, userInfo: userProfile })
-              }).catch(reject)
+      const userProfile = userData || {
+        nickName: '微信用户',
+        avatarUrl: ''
+      }
+      
+      app.globalData.userInfo = userProfile
+      
+      const db = wx.cloud.database()
+      db.collection('users').where({
+        openid: app.globalData.currentOpenId
+      }).get().then(userRes => {
+        if (userRes.data && userRes.data.length > 0) {
+          app.globalData.userId = userRes.data[0]._id
+          db.collection('users').doc(userRes.data[0]._id).update({
+            data: {
+              nickName: userProfile.nickName,
+              avatarUrl: userProfile.avatarUrl,
+              updateTime: db.serverDate()
             }
+          }).then(() => {
+            resolve({ userId: app.globalData.userId, userInfo: userProfile })
           }).catch(reject)
-        },
-        fail: reject
-      })
+        } else {
+          db.collection('users').add({
+            data: {
+              openid: app.globalData.currentOpenId,
+              nickName: userProfile.nickName,
+              avatarUrl: userProfile.avatarUrl,
+              createTime: db.serverDate(),
+              updateTime: db.serverDate()
+            }
+          }).then(addRes => {
+            app.globalData.userId = addRes._id
+            resolve({ userId: addRes._id, userInfo: userProfile })
+          }).catch(reject)
+        }
+      }).catch(reject)
     })
   },
 

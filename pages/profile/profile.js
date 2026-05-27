@@ -5,7 +5,9 @@ Page({
     userInfo: null,
     userId: null,
     myLikes: 0,
-    myComments: 0
+    myComments: 0,
+    tempAvatarUrl: '',
+    tempNickname: ''
   },
 
   onLoad: function () {
@@ -21,9 +23,12 @@ Page({
 
   checkLoginStatus: function () {
     const app = getApp()
+    console.log('checkLoginStatus - userId:', app.globalData.userId)
+    console.log('checkLoginStatus - userInfo:', app.globalData.userInfo)
+    
     this.setData({
       isLoggedIn: !!app.globalData.userId,
-      userInfo: app.globalData.userInfo,
+      userInfo: app.globalData.userInfo || {},
       userId: app.globalData.userId
     })
   },
@@ -45,9 +50,30 @@ Page({
     })
   },
 
+  onChooseAvatar: function(e) {
+    const { avatarUrl } = e.detail
+    this.setData({ tempAvatarUrl: avatarUrl })
+  },
+
+  onNicknameInput: function(e) {
+    this.setData({ tempNickname: e.detail.value })
+  },
+
   onLogin: function () {
+    if (!this.data.tempAvatarUrl || !this.data.tempNickname) {
+      wx.showToast({ title: '请先选择头像和昵称', icon: 'none' })
+      return
+    }
+
     const app = getApp()
-    app.login().then(() => {
+    const userData = {
+      nickName: this.data.tempNickname,
+      avatarUrl: this.data.tempAvatarUrl
+    }
+
+    app.login(userData).then((res) => {
+      console.log('登录成功:', res)
+      this.setData({ tempAvatarUrl: '', tempNickname: '' })
       this.checkLoginStatus()
       this.loadUserStats()
       wx.showToast({ title: '登录成功', icon: 'success' })
@@ -98,6 +124,14 @@ Page({
       default:
         break
     }
+  },
+
+  onAboutTap: function() {
+    wx.showModal({
+      title: '关于我们',
+      content: '潘潘的美妝穿搭合集\n展示美妝、造型、穿搭作品',
+      showCancel: false
+    })
   },
 
   onShareAppMessage() {

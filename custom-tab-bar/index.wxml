@@ -22,4 +22,12 @@
     <image class="tab-icon" src="{{selected === 2 ? list[2].selectedIconPath : list[2].iconPath}}" mode="aspectFit"></image>
     <text class="tab-text {{selected === 2 ? 'active' : ''}}">{{list[2].text}}</text>
   </view>
+  <view 
+    class="tab-item {{selected === 3 ? 'active' : ''}}" 
+    bindtap="switchTab" 
+    data-index="3"
+  >
+    <image class="tab-icon" src="{{selected === 3 ? list[3].selectedIconPath : list[3].iconPath}}" mode="aspectFit"></image>
+    <text class="tab-text {{selected === 3 ? 'active' : ''}}">{{list[3].text}}</text>
+  </view>
 </view>
