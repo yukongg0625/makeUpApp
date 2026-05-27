@@ -21,6 +21,12 @@ Component({
         text: "联系我们",
         iconPath: "/images/calendar.png",
         selectedIconPath: "/images/calendar-active.png"
+      },
+      {
+        pagePath: "/pages/profile/profile",
+        text: "我的",
+        iconPath: "/images/profile.png",
+        selectedIconPath: "/images/profile-active.png"
       }
     ]
   },

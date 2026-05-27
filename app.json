@@ -6,6 +6,7 @@
     "pages/featured/featured",
     "pages/customer/customer",
     "pages/contact/contact",
+    "pages/profile/profile",
     "pages/admin/admin",
     "pages/admin/categories/categories",
     "pages/admin/subcategories/subcategories",
@@ -45,6 +46,12 @@
         "text": "联系我们",
         "iconPath": "images/calendar.png",
         "selectedIconPath": "images/calendar-active.png"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的",
+        "iconPath": "images/profile.png",
+        "selectedIconPath": "images/profile-active.png"
       }
     ]
   },
