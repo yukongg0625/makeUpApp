@@ -3,10 +3,10 @@ App({
     cloudReady: false,
     categories: [],
     subcategories: {},
-    // 当前用户 OpenID
     currentOpenId: null,
-    // 是否为管理员
-    isAdmin: false
+    isAdmin: false,
+    userInfo: null,
+    userId: null
   },
 
   onLaunch: function () {
@@ -29,11 +29,9 @@ App({
       }
     }
 
-    // 获取当前用户 OpenID
     this.getCurrentUserOpenId()
   },
 
-  // 获取当前用户 OpenID 并检查管理员身份
   getCurrentUserOpenId: function() {
     wx.cloud.callFunction({
       name: 'login'
@@ -42,7 +40,6 @@ App({
       this.globalData.currentOpenId = openId
       console.log('当前用户 OpenID:', openId)
 
-      // 使用云函数检查管理员身份（绕过安全规则限制）
       wx.cloud.callFunction({
         name: 'checkAdmin',
         data: {
@@ -52,7 +49,6 @@ App({
         this.globalData.isAdmin = adminRes.result && adminRes.result.isAdmin
         console.log('是否为管理员:', this.globalData.isAdmin)
 
-        // 通知所有页面管理员状态已更新
         const pages = getCurrentPages()
         pages.forEach(page => {
           if (page.onAdminStatusUpdate) {
@@ -66,6 +62,62 @@ App({
       })
     }).catch(err => {
       console.error('获取 OpenID 失败:', err)
+    })
+  },
+
+  login: function() {
+    return new Promise((resolve, reject) => {
+      const app = this
+      wx.getUserProfile({
+        desc: '用于完善会员资料',
+        success: (res) => {
+          const userProfile = res.userInfo
+          app.globalData.userInfo = userProfile
+          
+          const db = wx.cloud.database()
+          db.collection('users').where({
+            openid: app.globalData.currentOpenId
+          }).get().then(userRes => {
+            if (userRes.data && userRes.data.length > 0) {
+              app.globalData.userId = userRes.data[0]._id
+              db.collection('users').doc(userRes.data[0]._id).update({
+                data: {
+                  nickName: userProfile.nickName,
+                  avatarUrl: userProfile.avatarUrl,
+                  updateTime: db.serverDate()
+                }
+              }).then(() => {
+                resolve({ userId: app.globalData.userId, userInfo: userProfile })
+              }).catch(reject)
+            } else {
+              db.collection('users').add({
+                data: {
+                  openid: app.globalData.currentOpenId,
+                  nickName: userProfile.nickName,
+                  avatarUrl: userProfile.avatarUrl,
+                  createTime: db.serverDate(),
+                  updateTime: db.serverDate()
+                }
+              }).then(addRes => {
+                app.globalData.userId = addRes._id
+                resolve({ userId: addRes._id, userInfo: userProfile })
+              }).catch(reject)
+            }
+          }).catch(reject)
+        },
+        fail: reject
+      })
+    })
+  },
+
+  ensureLogin: function() {
+    return new Promise((resolve, reject) => {
+      const app = this
+      if (app.globalData.userId && app.globalData.userInfo) {
+        resolve({ userId: app.globalData.userId, userInfo: app.globalData.userInfo })
+      } else {
+        app.login().then(resolve).catch(reject)
+      }
     })
   }
 })

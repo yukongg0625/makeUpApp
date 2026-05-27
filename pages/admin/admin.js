@@ -1,7 +1,7 @@
 // pages/admin/admin.js
 Page({
   data: {
-    version: '1.5.1'
+    version: '1.6.0'
   },
 
   onLoad: function (options) {

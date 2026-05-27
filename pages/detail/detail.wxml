@@ -1,5 +1,4 @@
 <view class="container">
-  <!-- 图片轮播 -->
   <view class="image-section">
     <swiper 
       class="image-swiper" 
@@ -22,18 +21,15 @@
       </swiper-item>
     </swiper>
     
-    <!-- 空状态 -->
     <view class="empty-state" wx:if="{{images.length === 0}}">
       <text>暂无图片</text>
     </view>
     
-    <!-- 图片计数 -->
     <view class="image-counter" wx:if="{{images.length > 1}}">
       {{currentImageIndex + 1}} / {{images.length}}
     </view>
   </view>
 
-  <!-- 作品信息 -->
   <view class="info-section">
     <view class="title-row">
       <text class="work-title">{{workInfo.title}}</text>
@@ -51,15 +47,24 @@
     <view class="description" wx:if="{{workInfo.description}}">
       <text class="desc-content">{{workInfo.description}}</text>
     </view>
+
+    <view class="action-row">
+      <view class="action-item" bindtap="onLikeTap">
+        <text class="action-icon">{{isLiked ? '❤️' : '🤍'}}</text>
+        <text class="action-text">{{likes}}</text>
+      </view>
+      <view class="action-item" bindtap="onShowComments">
+        <text class="action-icon">💬</text>
+        <text class="action-text">评论</text>
+      </view>
+    </view>
   </view>
 
-  <!-- 右侧固定联系我们按钮 -->
   <view class="contact-bubble" bindtap="onContactBubbleTap">
     <text class="contact-icon">💬</text>
     <text class="contact-text">联系我们</text>
   </view>
 
-  <!-- 客服弹窗 -->
   <view class="contact-modal" wx:if="{{showContactModal}}" bindtap="onCloseContactModal">
     <view class="contact-modal-content" catchtap="stopPropagation">
       <view class="modal-title">联系客服</view>
@@ -75,7 +80,55 @@
     </view>
   </view>
 
-  <!-- 自定义底部导航 -->
+  <view class="comments-modal" wx:if="{{showComments}}" bindtap="onHideComments">
+    <view class="comments-modal-content" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">评论 ({{comments.length}})</text>
+        <text class="modal-close" bindtap="onHideComments">×</text>
+      </view>
+      
+      <scroll-view class="comments-list" scroll-y>
+        <view class="comment-item" wx:for="{{comments}}" wx:key="_id">
+          <image class="comment-avatar" src="{{item.avatarUrl}}" mode="aspectFill" />
+          <view class="comment-content">
+            <view class="comment-header">
+              <text class="comment-nickname">{{item.nickName}}</text>
+              <text class="comment-time">{{item.createTime}}</text>
+            </view>
+            <text class="comment-text">{{item.content}}</text>
+          </view>
+        </view>
+        <view class="empty-comments" wx:if="{{comments.length === 0}}">
+          <text>暂无评论，快来发表第一条评论吧</text>
+        </view>
+      </scroll-view>
+      
+      <view class="comment-input-area">
+        <input 
+          class="comment-input" 
+          placeholder="发表评论..." 
+          value="{{commentText}}"
+          bindinput="onCommentInput"
+          confirm-type="send"
+          bindconfirm="onSubmitComment"
+        />
+        <button class="comment-submit-btn" bindtap="onSubmitComment">发送</button>
+      </view>
+    </view>
+  </view>
+
+  <view class="login-modal" wx:if="{{loginModalVisible}}" bindtap="onCloseLoginModal">
+    <view class="login-modal-content" catchtap="stopPropagation">
+      <view class="login-icon">👤</view>
+      <view class="login-title">需要登录</view>
+      <view class="login-desc">请先登录后才能进行此操作</view>
+      <view class="login-actions">
+        <button class="login-btn-secondary" bindtap="onCloseLoginModal">取消</button>
+        <button class="login-btn-primary" bindtap="onLogin">去登录</button>
+      </view>
+    </view>
+  </view>
+
   <view class="custom-tab-bar">
     <view class="tab-bar">
       <view class="tab-item" bindtap="switchTab" data-page="/pages/index/index">

@@ -1,0 +1,26 @@
+{
+  "indexes": [
+    {
+      "name": "user_openid_idx",
+      "type": "index",
+      "direction": "asc",
+      "fields": [
+        {
+          "name": "openid",
+          "direction": "asc"
+        }
+      ]
+    },
+    {
+      "name": "user_createTime_idx",
+      "type": "index",
+      "direction": "desc",
+      "fields": [
+        {
+          "name": "createTime",
+          "direction": "desc"
+        }
+      ]
+    }
+  ]
+}
