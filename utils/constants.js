@@ -18,21 +18,6 @@ export const IMAGE_CONFIG = {
   width: 1080
 }
 
-// 预约状态
-export const BOOKING_STATUS = {
-  PENDING: 'pending',
-  CONFIRMED: 'confirmed',
-  COMPLETED: 'completed',
-  CANCELLED: 'cancelled'
-}
-
-export const BOOKING_STATUS_TEXT = {
-  pending: '待确认',
-  confirmed: '已确认',
-  completed: '已完成',
-  cancelled: '已取消'
-}
-
 // 服务类型
 export const SERVICE_TYPES = [
   { id: 1, name: '服装租赁' },

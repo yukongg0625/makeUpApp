@@ -7,7 +7,7 @@
 
 .header {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
   background-color: #fff;
   padding: 30rpx;
@@ -18,6 +18,12 @@
   font-size: 36rpx;
   font-weight: bold;
   color: #333;
+  margin-bottom: 10rpx;
+}
+
+.subtitle {
+  font-size: 24rpx;
+  color: #999;
 }
 
 .form-content {
