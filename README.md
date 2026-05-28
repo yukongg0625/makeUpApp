@@ -2,6 +2,19 @@
 
 这是一个专业的化妆造型作品展示小程序，用于展示化妆造型作品，并提供联系客服预约的功能。
 
+**当前版本：v1.7.0**
+**开发分支：`customer_registration`**
+**生产分支：`main`**
+
+> ⚠️ 所有新功能和修改请在 `customer_registration` 分支上进行开发测试，确认无误后再合并到 `main` 分支发布。
+
+## 分支说明
+
+| 分支 | 用途 | 说明 |
+|------|------|------|
+| `main` | 生产环境 | 已发布到微信平台的稳定版本 |
+| `customer_registration` | 开发环境 | 新功能开发与测试，包含用户登录、收藏等功能 |
+
 ## 功能特性
 
 ### 前端功能
@@ -72,24 +85,27 @@ weapp-makeup/
 │   │   ├── feature/             # 影集页面
 │   │   ├── detail/              # 作品详情页
 │   │   ├── featured/            # 精华相册页面
-│   │   ├── customer/            # 客照页面
+│   │   ├── customer/            # 客照页面（信任定格）
 │   │   ├── contact/             # 联系我们页面
+│   │   ├── profile/             # 我的页面（v1.7.0 新增）
+│   │   │   ├── profile/         # 用户个人中心
+│   │   │   └── favorites/       # 我的收藏列表
 │   │   └── admin/               # 后台管理页面
 │   │       ├── admin/           # 后台管理入口
 │   │       ├── categories/      # 影集管理
 │   │       ├── subcategories/   # 子类管理
 │   │       ├── works/           # 作品管理
 │   │       ├── featured/        # 精华相册管理
-│   │       └── customer/        # 客照管理
-│   ├── components/              # 自定义组件
-│   │   └── tab-bar/            # 自定义底部导航组件
+│   │       ├── customer/        # 客照管理
+│   │       └── contact/         # 联系信息管理
+│   ├── custom-tab-bar/          # 自定义底部导航组件
 │   ├── cloudfunctions/          # 云函数目录
 │   │   ├── initDatabase/        # 数据库初始化云函数
 │   │   ├── login/              # 登录验证云函数（获取 OpenID）
 │   │   ├── setDatabasePermissions/ # 数据库权限检查云函数
 │   │   ├── getImageUrl/        # 获取云存储临时URL云函数
 │   │   ├── deleteDocument/     # 删除文档云函数
-│   │   └── workImages/         # 作品图片管理云函数
+│   │   ── workImages/         # 作品图片管理云函数
 │   ├── database/                # 数据库索引配置
 │   ├── utils/                   # 工具函数
 │   │   ├── util.js             # 通用工具函数
@@ -323,6 +339,38 @@ module.exports = {
 }
 ```
 
+#### 7. users（用户集合）
+```javascript
+{
+  _id: String,              // 用户 ID
+  openid: String,           // 微信 OpenID
+  nickName: String,         // 用户昵称
+  avatarUrl: String,        // 头像 URL
+  createTime: Date,         // 创建时间
+  updateTime: Date          // 更新时间
+}
+```
+
+#### 8. favorites（收藏集合）
+```javascript
+{
+  _id: String,              // 收藏记录 ID
+  workId: String,           // 作品 ID
+  userId: String,           // 用户 ID
+  workTitle: String,        // 作品标题
+  coverImage: String,       // 作品封面图 File ID
+  createTime: Date          // 收藏时间
+}
+```
+
+#### 9. settings（设置集合）
+```javascript
+{
+  _id: String,              // 设置项 ID（如：customerAlbum）
+  albumName: String         // 客照相册名称（如：信任定格）
+}
+```
+
 ## 数据备份与恢复
 
 ### 备份脚本说明
@@ -528,9 +576,10 @@ A: 这通常表示客服功能未在后台正确配置，请检查客服人员�
 
 ## 后续优化
 
-- [ ] 添加用户登录功能
-- [ ] 增加评论和点赞功能
+- [x] 添加用户登录功能
+- [x] 增加收藏功能（作品详情页悬浮收藏按钮 + 我的收藏页面）
 - [x] 实现后台管理系统
+- [x] 增加页面分享功能（转发给好友/微信群）
 - [ ] 添加消息通知功能
 - [ ] 支持更多分享渠道
 - [x] 优化图片加载性能
@@ -542,6 +591,8 @@ A: 这通常表示客服功能未在后台正确配置，请检查客服人员�
 - [ ] 实现预约管理系统
 - [ ] 添加数据统计和分析功能
 - [ ] 实现拖拽排序功能（后台管理列表拖拽调整排序）
+- [ ] 实现服饰租赁/售卖功能
+- [ ] 增加用户评论功能
 
 ## 技术支持
 
