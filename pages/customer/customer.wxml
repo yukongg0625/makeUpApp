@@ -31,4 +31,25 @@
   <view class="empty-state" wx:if="{{!loading && photos.length === 0}}">
     <text>暂无照片</text>
   </view>
+
+  <view class="custom-tab-bar">
+    <view class="tab-bar">
+      <view class="tab-item" bindtap="switchTab" data-page="/pages/index/index">
+        <image class="tab-icon" src="/images/home.png" mode="aspectFit"></image>
+        <text class="tab-text">主页</text>
+      </view>
+      <view class="tab-item active">
+        <image class="tab-icon" src="/images/star-active.png" mode="aspectFit"></image>
+        <text class="tab-text active">{{albumName || '客照'}}</text>
+      </view>
+      <view class="tab-item" bindtap="switchTab" data-page="/pages/contact/contact">
+        <image class="tab-icon" src="/images/calendar.png" mode="aspectFit"></image>
+        <text class="tab-text">联系我们</text>
+      </view>
+      <view class="tab-item" bindtap="switchTab" data-page="/pages/profile/profile">
+        <image class="tab-icon" src="/images/profile.png" mode="aspectFit"></image>
+        <text class="tab-text">我的</text>
+      </view>
+    </view>
+  </view>
 </view>

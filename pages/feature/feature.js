@@ -187,6 +187,11 @@ Page({
     })
   },
 
+  switchTab(e) {
+    const page = e.currentTarget.dataset.page
+    wx.switchTab({ url: page })
+  },
+
   onShareAppMessage() {
     return {
       title: this.data._categoryName || '潘潘的美妝穿搭合集',

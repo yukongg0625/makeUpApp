@@ -29,17 +29,23 @@ Page({
       const db = wx.cloud.database()
       db.collection('settings').doc('customerAlbum').get()
         .then(res => {
-          if (res.data && res.data.albumName) {
-            this.getTabBar().setData({
-              selected: 2,
-              albumName: res.data.albumName
-            })
-          } else {
-            this.getTabBar().setData({ selected: 2 })
-          }
+          const albumName = (res.data && res.data.albumName) || '客照'
+          const list = this.getTabBar().data.list
+          list[1].text = albumName
+          this.getTabBar().setData({
+            selected: 2,
+            albumName: albumName,
+            list: list
+          })
         })
         .catch(() => {
-          this.getTabBar().setData({ selected: 2 })
+          const list = this.getTabBar().data.list
+          list[1].text = '客照'
+          this.getTabBar().setData({
+            selected: 2,
+            albumName: '客照',
+            list: list
+          })
         })
     }
   },
@@ -142,6 +148,11 @@ Page({
     wx.navigateTo({
       url: '/pages/admin/admin'
     })
+  },
+
+  switchTab(e) {
+    const page = e.currentTarget.dataset.page
+    wx.switchTab({ url: page })
   },
 
   onShareAppMessage() {

@@ -1,0 +1,26 @@
+<view class="container">
+  <view class="page-header">
+    <text class="header-title">我的收藏</text>
+    <text class="header-subtitle">记录你喜欢的美妆造型</text>
+  </view>
+
+  <view class="favorites-grid" wx:if="{{favorites.length > 0}}">
+    <view class="favorites-row" wx:for="{{favoriteRows}}" wx:key="index">
+      <view class="favorite-item" wx:for="{{item}}" wx:key="_id" bindtap="onItemTap" data-id="{{item.workId}}">
+        <image class="cover-image" src="{{item.coverUrl || '/images/default-cover.png'}}" mode="aspectFill" />
+        <view class="favorite-overlay">
+          <text class="favorite-title">{{item.workTitle}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="empty-state" wx:if="{{favorites.length === 0 && !loading}}">
+    <text class="empty-icon">⭐</text>
+    <text class="empty-text">暂无收藏作品</text>
+  </view>
+
+  <view class="loading" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+</view>

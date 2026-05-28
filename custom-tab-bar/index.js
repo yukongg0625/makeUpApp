@@ -1,7 +1,7 @@
 Component({
   data: {
     selected: 0,
-    albumName: '美丽瞬间',
+    albumName: '客照',
     middleTab: null,
     list: [
       {

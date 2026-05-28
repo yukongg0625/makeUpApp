@@ -47,22 +47,16 @@
     <view class="description" wx:if="{{workInfo.description}}">
       <text class="desc-content">{{workInfo.description}}</text>
     </view>
-
-    <view class="action-row">
-      <view class="action-item" bindtap="onLikeTap">
-        <text class="action-icon">{{isLiked ? '❤️' : '🤍'}}</text>
-        <text class="action-text">{{likes}}</text>
-      </view>
-      <view class="action-item" bindtap="onShowComments">
-        <text class="action-icon">💬</text>
-        <text class="action-text">评论</text>
-      </view>
-    </view>
   </view>
 
   <view class="contact-bubble" bindtap="onContactBubbleTap">
     <text class="contact-icon">💬</text>
     <text class="contact-text">联系我们</text>
+  </view>
+
+  <view class="favorite-bubble" bindtap="onFavoriteTap">
+    <text class="favorite-icon">{{isFavorited ? '⭐' : '☆'}}</text>
+    <text class="favorite-text">收藏</text>
   </view>
 
   <view class="contact-modal" wx:if="{{showContactModal}}" bindtap="onCloseContactModal">
@@ -76,43 +70,6 @@
         <button class="modal-btn-secondary" bindtap="onCloseContactModal">取消</button>
         <button class="modal-btn-primary" open-type="contact" bindcontact="onContactSessionEnd">直接联系</button>
         <button class="modal-btn-image" bindtap="onCopyImageAndContact">复制图片后联系</button>
-      </view>
-    </view>
-  </view>
-
-  <view class="comments-modal" wx:if="{{showComments}}" bindtap="onHideComments">
-    <view class="comments-modal-content" catchtap="stopPropagation">
-      <view class="modal-header">
-        <text class="modal-title">评论 ({{comments.length}})</text>
-        <text class="modal-close" bindtap="onHideComments">×</text>
-      </view>
-      
-      <scroll-view class="comments-list" scroll-y>
-        <view class="comment-item" wx:for="{{comments}}" wx:key="_id">
-          <image class="comment-avatar" src="{{item.avatarUrl}}" mode="aspectFill" />
-          <view class="comment-content">
-            <view class="comment-header">
-              <text class="comment-nickname">{{item.nickName}}</text>
-              <text class="comment-time">{{item.createTime}}</text>
-            </view>
-            <text class="comment-text">{{item.content}}</text>
-          </view>
-        </view>
-        <view class="empty-comments" wx:if="{{comments.length === 0}}">
-          <text>暂无评论，快来发表第一条评论吧</text>
-        </view>
-      </scroll-view>
-      
-      <view class="comment-input-area">
-        <input 
-          class="comment-input" 
-          placeholder="发表评论..." 
-          value="{{commentText}}"
-          bindinput="onCommentInput"
-          confirm-type="send"
-          bindconfirm="onSubmitComment"
-        />
-        <button class="comment-submit-btn" bindtap="onSubmitComment">发送</button>
       </view>
     </view>
   </view>
@@ -142,6 +99,10 @@
       <view class="tab-item" bindtap="switchTab" data-page="/pages/contact/contact">
         <image class="tab-icon" src="/images/calendar.png" mode="aspectFit"></image>
         <text class="tab-text">联系我们</text>
+      </view>
+      <view class="tab-item" bindtap="switchTab" data-page="/pages/profile/profile">
+        <image class="tab-icon" src="/images/profile.png" mode="aspectFit"></image>
+        <text class="tab-text">我的</text>
       </view>
     </view>
   </view>

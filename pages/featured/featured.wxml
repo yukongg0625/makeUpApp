@@ -52,6 +52,10 @@
         <image class="tab-icon" src="/images/calendar.png" mode="aspectFit"></image>
         <text class="tab-text">联系我们</text>
       </view>
+      <view class="tab-item" bindtap="switchTab" data-page="/pages/profile/profile">
+        <image class="tab-icon" src="/images/profile.png" mode="aspectFit"></image>
+        <text class="tab-text">我的</text>
+      </view>
     </view>
   </view>
 </view>

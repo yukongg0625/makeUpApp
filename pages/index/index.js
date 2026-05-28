@@ -30,18 +30,25 @@ Page({
       const db = wx.cloud.database()
       db.collection('settings').doc('customerAlbum').get()
         .then(res => {
-          if (res.data && res.data.albumName) {
-            this.getTabBar().setData({
-              selected: 0,
-              albumName: res.data.albumName,
-              middleTab: null
-            })
-          } else {
-            this.getTabBar().setData({ selected: 0, middleTab: null })
-          }
+          const albumName = (res.data && res.data.albumName) || '客照'
+          const list = this.getTabBar().data.list
+          list[1].text = albumName
+          this.getTabBar().setData({
+            selected: 0,
+            albumName: albumName,
+            list: list,
+            middleTab: null
+          })
         })
         .catch(() => {
-          this.getTabBar().setData({ selected: 0, middleTab: null })
+          const list = this.getTabBar().data.list
+          list[1].text = '客照'
+          this.getTabBar().setData({
+            selected: 0,
+            albumName: '客照',
+            list: list,
+            middleTab: null
+          })
         })
     }
   },

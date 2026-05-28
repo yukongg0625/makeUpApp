@@ -4,8 +4,7 @@ Page({
     isLoggedIn: false,
     userInfo: null,
     userId: null,
-    myLikes: 0,
-    myComments: 0,
+    myFavorites: 0,
     tempAvatarUrl: '',
     tempNickname: ''
   },
@@ -16,16 +15,42 @@ Page({
 
   onShow: function () {
     this.checkLoginStatus()
+    this.updateTabBar()
     if (this.data.isLoggedIn) {
       this.loadUserStats()
     }
   },
 
+  updateTabBar() {
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      const db = wx.cloud.database()
+      db.collection('settings').doc('customerAlbum').get()
+        .then(res => {
+          const albumName = (res.data && res.data.albumName) || '客照'
+          const list = this.getTabBar().data.list
+          list[1].text = albumName
+          this.getTabBar().setData({
+            selected: 3,
+            albumName: albumName,
+            list: list,
+            middleTab: null
+          })
+        })
+        .catch(() => {
+          const list = this.getTabBar().data.list
+          list[1].text = '客照'
+          this.getTabBar().setData({
+            selected: 3,
+            albumName: '客照',
+            list: list,
+            middleTab: null
+          })
+        })
+    }
+  },
+
   checkLoginStatus: function () {
     const app = getApp()
-    console.log('checkLoginStatus - userId:', app.globalData.userId)
-    console.log('checkLoginStatus - userInfo:', app.globalData.userInfo)
-    
     this.setData({
       isLoggedIn: !!app.globalData.userId,
       userInfo: app.globalData.userInfo || {},
@@ -37,13 +62,9 @@ Page({
     const db = wx.cloud.database()
     const userId = this.data.userId
 
-    Promise.all([
-      db.collection('likes').where({ userId: userId }).count(),
-      db.collection('comments').where({ userId: userId }).count()
-    ]).then(([likesRes, commentsRes]) => {
+    db.collection('favorites').where({ userId: userId }).count().then(res => {
       this.setData({
-        myLikes: likesRes.total || 0,
-        myComments: commentsRes.total || 0
+        myFavorites: res.total || 0
       })
     }).catch(err => {
       console.error('加载用户统计失败:', err)
@@ -71,8 +92,7 @@ Page({
       avatarUrl: this.data.tempAvatarUrl
     }
 
-    app.login(userData).then((res) => {
-      console.log('登录成功:', res)
+    app.login(userData).then(() => {
       this.setData({ tempAvatarUrl: '', tempNickname: '' })
       this.checkLoginStatus()
       this.loadUserStats()
@@ -96,8 +116,7 @@ Page({
             isLoggedIn: false,
             userInfo: null,
             userId: null,
-            myLikes: 0,
-            myComments: 0
+            myFavorites: 0
           })
           wx.showToast({ title: '已退出登录', icon: 'success' })
         }
@@ -114,15 +133,8 @@ Page({
       return
     }
 
-    switch (type) {
-      case 'likes':
-        wx.navigateTo({ url: '/pages/profile/likes/likes' })
-        break
-      case 'comments':
-        wx.navigateTo({ url: '/pages/profile/comments/comments' })
-        break
-      default:
-        break
+    if (type === 'favorites') {
+      wx.navigateTo({ url: '/pages/profile/favorites/favorites' })
     }
   },
 

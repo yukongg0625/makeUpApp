@@ -7,7 +7,18 @@
 .user-section {
   background-color: #fff;
   padding: 40rpx 30rpx;
+  display: flex;
+  align-items: center;
   margin-bottom: 20rpx;
+}
+
+.right-section {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
 }
 
 .avatar {
@@ -15,6 +26,7 @@
   height: 120rpx;
   border-radius: 50%;
   margin-right: 30rpx;
+  flex-shrink: 0;
 }
 
 .avatar-placeholder {
@@ -33,13 +45,16 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+  gap: 12rpx;
 }
 
 .nickname {
   font-size: 36rpx;
   font-weight: bold;
   color: #333;
-  margin-bottom: 8rpx;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .user-id {
@@ -54,6 +69,7 @@
   font-size: 26rpx;
   border-radius: 32rpx;
   border: none;
+  flex-shrink: 0;
 }
 
 .logout-btn::after {
@@ -73,19 +89,18 @@
   align-items: center;
 }
 
-.avatar-button {
+.avatar-circle-wrapper {
+  position: relative;
+  width: 140rpx;
+  height: 140rpx;
+}
+
+.avatar-circle {
   width: 140rpx;
   height: 140rpx;
   border-radius: 50%;
   background-color: #f5f5f5;
-  border: none;
-  padding: 0;
   overflow: hidden;
-  display: block;
-}
-
-.avatar-button::after {
-  border: none;
 }
 
 .avatar-preview {
@@ -93,6 +108,26 @@
   height: 100%;
   border-radius: 50%;
   display: block;
+}
+
+/* Invisible button overlaying the avatar circle */
+.avatar-btn-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  opacity: 0;
+  z-index: 10;
+}
+
+.avatar-btn-overlay::after {
+  border: none;
 }
 
 .avatar-label {
@@ -139,20 +174,6 @@
 
 .login-btn::after {
   border: none;
-}
-
-/* Old styles */
-.login-prompt {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-.login-text {
-  font-size: 28rpx;
-  color: #999;
-  margin-bottom: 20rpx;
 }
 
 .menu-section {

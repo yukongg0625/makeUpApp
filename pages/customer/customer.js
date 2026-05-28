@@ -4,7 +4,7 @@ Page({
   data: {
     photos: [],
     photoRows: [],
-    albumName: '美丽瞬间',
+    albumName: '客照',
     loading: false
   },
 
@@ -104,6 +104,11 @@ Page({
     setTimeout(() => {
       wx.stopPullDownRefresh()
     }, 500)
+  },
+
+  switchTab(e) {
+    const page = e.currentTarget.dataset.page
+    wx.switchTab({ url: page })
   },
 
   onShareAppMessage() {

@@ -23,7 +23,36 @@ Page({
       hasMore: true
     })
     this.loadAlbumName()
+    this.updateTabBar()
     this.loadFeaturedWorks()
+  },
+
+  updateTabBar() {
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      const db = wx.cloud.database()
+      db.collection('settings').doc('customerAlbum').get()
+        .then(res => {
+          const albumName = (res.data && res.data.albumName) || '客照'
+          const list = this.getTabBar().data.list
+          list[1].text = albumName
+          this.getTabBar().setData({
+            selected: 1,
+            albumName: albumName,
+            list: list,
+            middleTab: null
+          })
+        })
+        .catch(() => {
+          const list = this.getTabBar().data.list
+          list[1].text = '客照'
+          this.getTabBar().setData({
+            selected: 1,
+            albumName: '客照',
+            list: list,
+            middleTab: null
+          })
+        })
+    }
   },
 
   loadAlbumName() {

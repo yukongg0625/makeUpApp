@@ -23,11 +23,7 @@ Page({
     middleTabText: '美丽瞬间',
     middleTabUrl: '',
     
-    likes: 0,
-    isLiked: false,
-    comments: [],
-    commentText: '',
-    showComments: false,
+    isFavorited: false,
     loginModalVisible: false
   },
 
@@ -35,8 +31,7 @@ Page({
     if (options.id) {
       this.setData({ workId: options.id })
       this.loadWorkDetail(options.id)
-      this.loadLikes(options.id)
-      this.loadComments(options.id)
+      this.loadFavorites(options.id)
     }
     this.loadContactInfo()
   },
@@ -113,44 +108,23 @@ Page({
       })
   },
 
-  loadLikes(workId) {
+  loadFavorites(workId) {
+    const app = getApp()
+    if (!app.globalData.userId) return
+    
     const db = wx.cloud.database()
     const _ = db.command
     
-    Promise.all([
-      db.collection('likes').where({ workId: workId }).count(),
-      db.collection('likes').where({
-        workId: workId,
-        userId: _.eq(getApp().globalData.userId)
-      }).get()
-    ]).then(([countRes, likeRes]) => {
+    db.collection('favorites').where({
+      workId: workId,
+      userId: app.globalData.userId
+    }).get().then(res => {
       this.setData({
-        likes: countRes.total || 0,
-        isLiked: likeRes.data && likeRes.data.length > 0
+        isFavorited: res.data && res.data.length > 0
       })
     }).catch(err => {
-      console.error('加载点赞数据失败:', err)
+      console.error('加载收藏数据失败:', err)
     })
-  },
-
-  loadComments(workId) {
-    const db = wx.cloud.database()
-    
-    db.collection('comments')
-      .where({ workId: workId })
-      .orderBy('createTime', 'desc')
-      .get()
-      .then(res => {
-        const comments = res.data.map(comment => ({
-          ...comment,
-          avatarUrl: comment.avatarUrl || '',
-          nickName: comment.nickName || '匿名用户',
-          createTime: this.formatTime(comment.createTime)
-        }))
-        this.setData({ comments })
-      }).catch(err => {
-        console.error('加载评论失败:', err)
-      })
   },
 
   formatTime(date) {
@@ -393,7 +367,7 @@ Page({
     }
   },
 
-  onLikeTap() {
+  onFavoriteTap() {
     const app = getApp()
     if (!app.globalData.userId) {
       this.setData({ loginModalVisible: true })
@@ -404,94 +378,45 @@ Page({
     const workId = this.data.workId
     const userId = app.globalData.userId
 
-    if (this.data.isLiked) {
-      db.collection('likes').where({
+    if (this.data.isFavorited) {
+      db.collection('favorites').where({
         workId: workId,
         userId: userId
       }).get().then(res => {
         if (res.data && res.data.length > 0) {
-          return db.collection('likes').doc(res.data[0]._id).remove()
+          return db.collection('favorites').doc(res.data[0]._id).remove()
         }
       }).then(() => {
-        this.setData({
-          likes: this.data.likes - 1,
-          isLiked: false
-        })
+        this.setData({ isFavorited: false })
+        wx.showToast({ title: '已取消收藏', icon: 'success' })
       }).catch(err => {
-        console.error('取消点赞失败:', err)
+        console.error('取消收藏失败:', err)
       })
     } else {
-      db.collection('likes').add({
-        data: {
-          workId: workId,
-          userId: userId,
-          createTime: db.serverDate()
-        }
-      }).then(() => {
-        this.setData({
-          likes: this.data.likes + 1,
-          isLiked: true
+      db.collection('works').doc(workId).get().then(workRes => {
+        const work = workRes.data
+        return db.collection('favorites').add({
+          data: {
+            workId: workId,
+            userId: userId,
+            workTitle: work.title || '',
+            coverImage: work.images[0] || work.coverImage || '',
+            createTime: db.serverDate()
+          }
         })
+      }).then(() => {
+        this.setData({ isFavorited: true })
+        wx.showToast({ title: '已收藏', icon: 'success' })
       }).catch(err => {
-        console.error('点赞失败:', err)
+        console.error('收藏失败:', err)
+        wx.showToast({ title: '收藏失败', icon: 'error' })
       })
     }
-  },
-
-  onShowComments() {
-    this.setData({ showComments: true })
-  },
-
-  onHideComments() {
-    this.setData({ showComments: false })
-  },
-
-  onCommentInput(e) {
-    this.setData({ commentText: e.detail.value })
-  },
-
-  onSubmitComment() {
-    const app = getApp()
-    if (!app.globalData.userId) {
-      this.setData({ loginModalVisible: true })
-      return
-    }
-
-    const commentText = this.data.commentText.trim()
-    if (!commentText) {
-      wx.showToast({ title: '请输入评论内容', icon: 'none' })
-      return
-    }
-
-    const db = wx.cloud.database()
-    db.collection('comments').add({
-      data: {
-        workId: this.data.workId,
-        userId: app.globalData.userId,
-        nickName: app.globalData.userInfo.nickName,
-        avatarUrl: app.globalData.userInfo.avatarUrl,
-        content: commentText,
-        createTime: db.serverDate()
-      }
-    }).then(() => {
-      wx.showToast({ title: '评论成功', icon: 'success' })
-      this.setData({ commentText: '' })
-      this.loadComments(this.data.workId)
-    }).catch(err => {
-      console.error('发表评论失败:', err)
-      wx.showToast({ title: '评论失败', icon: 'error' })
-    })
   },
 
   onLogin() {
-    const app = getApp()
-    app.login().then(() => {
-      this.setData({ loginModalVisible: false })
-      wx.showToast({ title: '登录成功', icon: 'success' })
-    }).catch(err => {
-      console.error('登录失败:', err)
-      wx.showToast({ title: '登录失败', icon: 'error' })
-    })
+    this.setData({ loginModalVisible: false })
+    wx.switchTab({ url: '/pages/profile/profile' })
   },
 
   onCloseLoginModal() {
