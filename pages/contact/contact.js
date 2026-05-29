@@ -1,12 +1,11 @@
-// pages/contact/contact.js
+const cloudStorage = require('../../utils/cloudStorage.js')
+
 Page({
   data: {
     contactInfo: {
       name: '',
       description: '',
-      phone: '',
-      wechat: '',
-      address: ''
+      qrcodeUrl: ''
     },
     isAdmin: false,
     openId: '',
@@ -44,11 +43,9 @@ Page({
     }
   },
 
-  // 检查管理员状态
   checkAdminStatus: function () {
     const app = getApp()
-    
-    // 如果 globalData 已经初始化，直接检查
+
     if (app.globalData.currentOpenId) {
       this.setData({
         isAdmin: app.globalData.isAdmin,
@@ -56,7 +53,6 @@ Page({
       })
       console.log('管理员状态（已加载）:', this.data.isAdmin)
     } else {
-      // 等待一小段时间让 app.js 完成初始化
       setTimeout(() => {
         this.setData({
           isAdmin: app.globalData.isAdmin,
@@ -67,7 +63,6 @@ Page({
     }
   },
 
-  // 管理员状态更新回调（由 app.js 调用）
   onAdminStatusUpdate: function (isAdmin) {
     const app = getApp()
     this.setData({
@@ -87,13 +82,13 @@ Page({
         this.setData({
           contactInfo: {
             name: info.name || '',
-            description: info.description || '',
-            phone: info.phone || '',
-            wechat: info.wechat || '',
-            address: info.address || ''
+            description: info.description || ''
           },
           loading: false
         })
+        if (info.qrcodeFileId) {
+          this.convertQrcodeUrl(info.qrcodeFileId)
+        }
       } else {
         console.log('数据库中没有联系信息')
         this.setData({ loading: false })
@@ -104,37 +99,15 @@ Page({
     })
   },
 
-  openWechatChat: function () {
-    wx.openCustomerServiceChat({
-      success: function () {
-        console.log('打开客服聊天成功')
-      },
-      fail: function (err) {
-        console.error('打开客服聊天失败:', err)
-        wx.showToast({
-          title: '客服功能暂未开通，请稍后再试',
-          icon: 'none',
-          duration: 2000
+  convertQrcodeUrl: function(fileId) {
+    cloudStorage.getTempFileURL([fileId]).then(urlMap => {
+      if (urlMap[fileId]) {
+        this.setData({
+          'contactInfo.qrcodeUrl': urlMap[fileId]
         })
       }
-    })
-  },
-
-  onPhoneCall: function () {
-    wx.makePhoneCall({
-      phoneNumber: this.data.contactInfo.phone
-    })
-  },
-
-  onCopyWechat: function () {
-    wx.setClipboardData({
-      data: this.data.contactInfo.wechat,
-      success: function () {
-        wx.showToast({
-          title: '微信号已复制',
-          icon: 'success'
-        })
-      }
+    }).catch(err => {
+      console.error('获取临时URL失败:', err)
     })
   },
 

@@ -91,6 +91,7 @@
   font-size: 32rpx;
   font-weight: bold;
   color: #333;
+  line-height: 1.4;
   position: relative;
   padding-left: 20rpx;
 }
@@ -99,8 +100,7 @@
   content: '';
   position: absolute;
   left: 0;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 3rpx;
   width: 8rpx;
   height: 36rpx;
   background: linear-gradient(180deg, #d4a574 0%, #c4956a 100%);

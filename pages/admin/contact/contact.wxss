@@ -1,4 +1,3 @@
-/* pages/admin/contact/contact.wxss */
 .container {
   min-height: 100vh;
   background-color: #f5f5f5;
@@ -52,15 +51,61 @@
   border-bottom: 1rpx solid #eee;
 }
 
-.form-textarea {
+.qrcode-area {
   width: 100%;
-  height: 150rpx;
-  font-size: 32rpx;
-  color: #333;
-  padding: 16rpx;
-  border: 1rpx solid #eee;
-  border-radius: 8rpx;
-  box-sizing: border-box;
+  height: 400rpx;
+  background-color: #f9f9f9;
+  border: 2rpx dashed #ddd;
+  border-radius: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.qrcode-preview {
+  width: 100%;
+  height: 100%;
+}
+
+.qrcode-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.placeholder-icon {
+  font-size: 80rpx;
+  color: #ccc;
+  line-height: 1;
+  margin-bottom: 16rpx;
+}
+
+.placeholder-text {
+  font-size: 26rpx;
+  color: #999;
+}
+
+.qrcode-actions {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 20rpx;
+}
+
+.action-btn {
+  flex: 1;
+  height: 70rpx;
+  background-color: #d4a574;
+  color: #fff;
+  border-radius: 35rpx;
+  font-size: 26rpx;
+  text-align: center;
+  line-height: 70rpx;
+}
+
+.action-btn.delete {
+  background-color: #ff6b6b;
 }
 
 .btn-area {

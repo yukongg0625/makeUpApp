@@ -5,19 +5,13 @@
       <text class="contact-subtitle">{{contactInfo.description || '专业化妆造型服务'}}</text>
     </view>
 
-    <view class="contact-info">
-      <view class="info-item">
-        <text class="info-label">联系电话</text>
-        <text class="info-value" bindtap="onPhoneCall">{{contactInfo.phone}}</text>
-      </view>
-      <view class="info-item">
-        <text class="info-label">微信号</text>
-        <text class="info-value" bindtap="onCopyWechat">{{contactInfo.wechat}}</text>
-      </view>
-      <view class="info-item">
-        <text class="info-label">地址</text>
-        <text class="info-value">{{contactInfo.address}}</text>
-      </view>
+    <view class="qrcode-section" wx:if="{{contactInfo.qrcodeUrl}}">
+      <text class="qrcode-label">扫码联系我</text>
+      <image class="qrcode-image" src="{{contactInfo.qrcodeUrl}}" mode="widthFix" />
+    </view>
+
+    <view class="empty-qrcode" wx:else>
+      <text class="empty-text">暂无联系方式</text>
     </view>
 
     <button class="contact-btn" open-type="contact">
