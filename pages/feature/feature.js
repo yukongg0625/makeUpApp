@@ -28,6 +28,10 @@ Page({
   },
 
   onShow: function () {
+    wx.showShareMenu({
+      withShareTicket: true,
+      menus: ['shareAppMessage']
+    })
     if (this.data._categoryId) {
       this.reloadCategoryData(this.data._categoryId, this.data._categoryName, this.data._subcategoryId)
     }

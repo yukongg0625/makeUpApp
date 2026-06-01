@@ -25,6 +25,10 @@ Page({
   },
 
   onLoad: function (options) {
+    wx.showShareMenu({
+      withShareTicket: true,
+      menus: ['shareAppMessage']
+    })
     if (options.id) {
       this.setData({ workId: options.id })
       this.loadWorkDetail(options.id)

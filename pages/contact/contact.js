@@ -18,6 +18,10 @@ Page({
   },
 
   onShow: function () {
+    wx.showShareMenu({
+      withShareTicket: true,
+      menus: ['shareAppMessage']
+    })
     this.checkAdminStatus()
     this.loadContactInfo()
     this.updateTabBar()

@@ -17,6 +17,10 @@ Page({
   },
 
   onShow: function () {
+    wx.showShareMenu({
+      withShareTicket: true,
+      menus: ['shareAppMessage']
+    })
     this.setData({
       featuredWorks: [],
       skip: 0,

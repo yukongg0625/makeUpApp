@@ -15,7 +15,10 @@ Page({
   },
 
   onShow: function () {
-    // 只在首次加载，避免重复请求
+    wx.showShareMenu({
+      withShareTicket: true,
+      menus: ['shareAppMessage']
+    })
     if (this.data.features.length === 0) {
       this.loadFeatures()
     }
