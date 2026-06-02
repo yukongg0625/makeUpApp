@@ -1,4 +1,5 @@
 {
   "navigationBarTitleText": "作品详情",
-  "enablePullDownRefresh": false
+  "enablePullDownRefresh": false,
+  "enableShareAppMessage": true
 }

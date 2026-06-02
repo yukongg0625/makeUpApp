@@ -15,10 +15,7 @@ Page({
   },
 
   onShow: function () {
-    wx.showShareMenu({
-      withShareTicket: true,
-      menus: ['shareAppMessage']
-    })
+    this.enableShare()
     if (this.data.features.length === 0) {
       this.loadFeatures()
     }
@@ -26,6 +23,15 @@ Page({
       this.loadFeaturedWorks()
     }
     this.updateTabBar()
+  },
+
+  enableShare: function () {
+    wx.showShareMenu({
+      withShareTicket: false,
+      menus: ['shareAppMessage']
+    }).catch(err => {
+      console.warn('开启分享菜单失败:', err)
+    })
   },
 
   updateTabBar() {
@@ -255,6 +261,10 @@ Page({
     setTimeout(() => {
       wx.stopPullDownRefresh()
     }, 500)
+  },
+
+  onImageError(e) {
+    console.warn('图片加载失败:', e.detail.errMsg)
   },
 
   onShareAppMessage() {

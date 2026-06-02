@@ -11,7 +11,8 @@ Page({
     loadingMore: false,
     hasMore: true,
     skip: 0,
-    limit: 20
+    limit: 20,
+    imageErrorMap: {}
   },
 
   onLoad: function (options) {
@@ -159,6 +160,14 @@ Page({
     })
     
     this.loadWorks()
+  },
+
+  onImageError(e) {
+    const id = e.currentTarget.dataset.id
+    console.warn('作品图片加载失败:', id, e.detail.errMsg)
+    const errorMap = { ...this.data.imageErrorMap }
+    errorMap[id] = true
+    this.setData({ imageErrorMap: errorMap })
   },
 
   onWorkTap(e) {

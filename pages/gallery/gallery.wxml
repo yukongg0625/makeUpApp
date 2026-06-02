@@ -42,7 +42,12 @@
       bindtap="onWorkTap"
       data-id="{{item.id}}"
     >
-      <image class="gallery-image" src="{{item.coverUrl}}" mode="aspectFill" lazy-load="{{true}}" />
+      <view class="gallery-image-wrapper">
+        <image class="gallery-image" src="{{item.coverUrl}}" mode="aspectFill" lazy-load="{{true}}" binderror="onImageError" data-id="{{item.id}}" />
+        <view class="gallery-image-placeholder" wx:if="{{imageErrorMap[item.id]}}">
+          <text class="placeholder-text">图片加载失败</text>
+        </view>
+      </view>
       <view class="gallery-overlay">
         <view class="gallery-title">{{item.title}}</view>
         <view class="gallery-type">{{item.subcategoryName}}</view>

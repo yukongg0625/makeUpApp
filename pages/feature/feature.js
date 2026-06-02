@@ -6,7 +6,8 @@ Page({
     subcategories: [],
     works: [],
     selectedSubcategory: null,
-    loading: true
+    loading: true,
+    imageErrorMap: {}
   },
 
   onLoad: function (options) {
@@ -29,8 +30,10 @@ Page({
 
   onShow: function () {
     wx.showShareMenu({
-      withShareTicket: true,
+      withShareTicket: false,
       menus: ['shareAppMessage']
+    }).catch(err => {
+      console.warn('开启分享菜单失败:', err)
     })
     if (this.data._categoryId) {
       this.reloadCategoryData(this.data._categoryId, this.data._categoryName, this.data._subcategoryId)
@@ -182,6 +185,18 @@ Page({
     })
 
     this.loadWorks(this.data._categoryId, subcategoryId)
+  },
+
+  onImageError: function (e) {
+    const id = e.currentTarget.dataset.id
+    console.warn('作品图片加载失败:', id, e.detail.errMsg)
+    const errorMap = { ...this.data.imageErrorMap }
+    errorMap[id] = true
+    this.setData({ imageErrorMap: errorMap })
+  },
+
+  onImageLoad: function (e) {
+    // 图片加载成功
   },
 
   onWorkTap: function (e) {

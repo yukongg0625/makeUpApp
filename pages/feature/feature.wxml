@@ -28,7 +28,12 @@
         data-id="{{item._id}}" 
         bindtap="onWorkTap"
       >
-        <image class="work-image" src="{{item.coverUrl}}" mode="aspectFill"></image>
+        <view class="work-image-wrapper">
+          <image class="work-image" src="{{item.coverUrl}}" mode="aspectFill" lazy-load="{{true}}" binderror="onImageError" bindload="onImageLoad" data-id="{{item._id}}"></image>
+          <view class="work-image-placeholder" wx:if="{{imageErrorMap[item._id]}}">
+            <text class="placeholder-text">图片加载失败</text>
+          </view>
+        </view>
         <view class="work-info">
           <text class="work-title">{{item.title}}</text>
           <text class="work-subtitle">{{item.subcategoryName}}</text>

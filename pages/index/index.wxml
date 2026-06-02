@@ -16,7 +16,7 @@
           data-id="{{item._id}}"
           data-name="{{item.name}}"
         >
-          <image class="feature-cover" src="{{item.coverImage}}" mode="aspectFill" />
+          <image class="feature-cover" src="{{item.coverImage}}" mode="aspectFill" lazy-load="{{true}}" binderror="onImageError" />
           <text class="feature-text">{{item.name}}</text>
         </view>
       </view>

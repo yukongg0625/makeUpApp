@@ -19,8 +19,10 @@ Page({
 
   onShow: function () {
     wx.showShareMenu({
-      withShareTicket: true,
+      withShareTicket: false,
       menus: ['shareAppMessage']
+    }).catch(err => {
+      console.warn('开启分享菜单失败:', err)
     })
     this.checkAdminStatus()
     this.loadContactInfo()

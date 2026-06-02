@@ -26,8 +26,10 @@ Page({
 
   onLoad: function (options) {
     wx.showShareMenu({
-      withShareTicket: true,
+      withShareTicket: false,
       menus: ['shareAppMessage']
+    }).catch(err => {
+      console.warn('开启分享菜单失败:', err)
     })
     if (options.id) {
       this.setData({ workId: options.id })
@@ -170,31 +172,6 @@ Page({
     wx.previewImage({
       current: this.data.images[index],
       urls: this.data.images
-    })
-  },
-
-  onShare() {
-    wx.showShareMenu({
-      withShareTicket: true,
-      menus: ['shareAppMessage', 'shareTimeline']
-    })
-    
-    wx.showActionSheet({
-      itemList: ['分享给微信好友', '分享到朋友圈'],
-      success: (res) => {
-        if (res.tapIndex === 0) {
-          wx.shareAppMessage({
-            title: this.data.workInfo.title,
-            path: `/pages/detail/detail?id=${this.data.workId}`
-          })
-        } else if (res.tapIndex === 1) {
-          wx.shareTimeline({
-            title: this.data.workInfo.title,
-            query: `id=${this.data.workId}`,
-            imageUrl: this.data.images[0]
-          })
-        }
-      }
     })
   },
 

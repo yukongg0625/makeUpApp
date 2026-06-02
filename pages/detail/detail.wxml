@@ -37,9 +37,6 @@
   <view class="info-section">
     <view class="title-row">
       <text class="work-title">{{workInfo.title}}</text>
-      <view class="share-btn" bindtap="onShare">
-        <text>分享</text>
-      </view>
     </view>
 
     <view class="meta-row">

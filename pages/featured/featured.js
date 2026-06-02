@@ -8,7 +8,8 @@ Page({
     hasMore: true,
     skip: 0,
     limit: 20,
-    albumName: '美丽瞬间'
+    albumName: '美丽瞬间',
+    imageErrorMap: {}
   },
 
   onLoad: function () {
@@ -18,8 +19,10 @@ Page({
 
   onShow: function () {
     wx.showShareMenu({
-      withShareTicket: true,
+      withShareTicket: false,
       menus: ['shareAppMessage']
+    }).catch(err => {
+      console.warn('开启分享菜单失败:', err)
     })
     this.setData({
       featuredWorks: [],
@@ -124,6 +127,14 @@ Page({
   // 转换云存储 File ID 为临时 URL
   convertCloudStorageUrls: function(data, fieldName) {
     return cloudStorage.convertCloudStorageUrls(data, fieldName)
+  },
+
+  onImageError(e) {
+    const id = e.currentTarget.dataset.id
+    console.warn('精选作品图片加载失败:', id, e.detail.errMsg)
+    const errorMap = { ...this.data.imageErrorMap }
+    errorMap[id] = true
+    this.setData({ imageErrorMap: errorMap })
   },
 
   onWorkTap(e) {

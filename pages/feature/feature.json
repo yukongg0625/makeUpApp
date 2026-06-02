@@ -2,5 +2,6 @@
   "navigationBarTitleText": "功能集",
   "navigationBarBackgroundColor": "#f8f8f8",
   "navigationBarTextStyle": "black",
-  "usingComponents": {}
+  "usingComponents": {},
+  "enableShareAppMessage": true
 }

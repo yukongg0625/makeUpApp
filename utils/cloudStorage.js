@@ -1,8 +1,63 @@
 // 云存储工具函数
 const config = require('../config.js')
 
+// 缓存配置：临时URL默认缓存50分钟（云存储临时URL通常1小时过期）
+const CACHE_KEY = 'cloud_img_url_cache'
+const CACHE_TTL = 50 * 60 * 1000 // 50分钟
+
 /**
- * 获取云存储文件临时URL
+ * 从缓存获取URL
+ */
+function getCachedUrl(fileId) {
+  try {
+    const cache = wx.getStorageSync(CACHE_KEY) || {}
+    const entry = cache[fileId]
+    if (entry && entry.url && Date.now() - entry.timestamp < CACHE_TTL) {
+      return entry.url
+    }
+    // 过期则清除
+    if (entry) {
+      delete cache[fileId]
+      wx.setStorageSync(CACHE_KEY, cache)
+    }
+  } catch (e) {
+    console.warn('读取图片URL缓存失败:', e)
+  }
+  return null
+}
+
+/**
+ * 缓存URL
+ */
+function setCachedUrl(fileId, url) {
+  try {
+    const cache = wx.getStorageSync(CACHE_KEY) || {}
+    cache[fileId] = { url, timestamp: Date.now() }
+    wx.setStorageSync(CACHE_KEY, cache)
+  } catch (e) {
+    console.warn('写入图片URL缓存失败:', e)
+  }
+}
+
+/**
+ * 批量获取缓存URL，返回 { cached: { fileId: url }, missing: [fileId] }
+ */
+function batchGetCachedUrls(fileIds) {
+  const cached = {}
+  const missing = []
+  fileIds.forEach(id => {
+    const url = getCachedUrl(id)
+    if (url) {
+      cached[id] = url
+    } else {
+      missing.push(id)
+    }
+  })
+  return { cached, missing }
+}
+
+/**
+ * 获取云存储文件临时URL（带缓存）
  * @param {Array} fileIds - 云存储文件ID数组
  * @returns {Promise} 返回 { urlMap: { fileID: tempFileURL } }
  */
@@ -11,6 +66,32 @@ function getTempFileURL(fileIds) {
     return Promise.resolve({})
   }
 
+  // 先检查缓存
+  const { cached, missing } = batchGetCachedUrls(fileIds)
+  console.log('图片URL缓存命中:', Object.keys(cached).length, '/', fileIds.length)
+
+  if (missing.length === 0) {
+    // 全部命中缓存
+    return Promise.resolve(cached)
+  }
+
+  // 部分或全部未命中，请求缺失的
+  const fetchPromise = missing.length > 0
+    ? fetchTempFileURL(missing)
+    : Promise.resolve({})
+
+  return fetchPromise.then(newUrls => {
+    // 缓存新获取的URL
+    Object.keys(newUrls).forEach(id => setCachedUrl(id, newUrls[id]))
+    // 合并缓存和新数据
+    return { ...cached, ...newUrls }
+  })
+}
+
+/**
+ * 实际请求临时URL（内部函数）
+ */
+function fetchTempFileURL(fileIds) {
   if (config.storage.useCloudFunctionForImageUrl) {
     // 使用云函数获取（开发环境）
     return wx.cloud.callFunction({
@@ -109,5 +190,13 @@ function convertCloudStorageUrls(data, fieldName) {
 
 module.exports = {
   getTempFileURL,
-  convertCloudStorageUrls
+  convertCloudStorageUrls,
+  clearUrlCache: function() {
+    try {
+      wx.removeStorageSync(CACHE_KEY)
+      console.log('图片URL缓存已清除')
+    } catch (e) {
+      console.warn('清除缓存失败:', e)
+    }
+  }
 }
