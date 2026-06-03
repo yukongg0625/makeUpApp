@@ -559,6 +559,33 @@
   height: 200rpx;
   border-radius: 12rpx;
   overflow: hidden;
+  transition: transform 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+}
+
+.upload-image-item.dragging {
+  opacity: 0.4;
+  transform: scale(0.95);
+  box-shadow: 0 0 0 4rpx #d4a574;
+}
+
+.upload-image-item.drag-over {
+  box-shadow: 0 0 0 4rpx #d4a574;
+  transform: scale(1.05);
+}
+
+.upload-drag-handle {
+  position: absolute;
+  top: 8rpx;
+  right: 8rpx;
+  width: 40rpx;
+  height: 40rpx;
+  background-color: rgba(212, 165, 116, 0.9);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #fff;
+  font-size: 24rpx;
 }
 
 .upload-image-item image {

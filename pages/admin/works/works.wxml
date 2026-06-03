@@ -203,18 +203,26 @@
         <text class="form-label">作品图片<text class="required">*</text></text>
         <view class="images-upload-area">
           <view class="upload-images-grid">
-            <view class="upload-image-item" wx:for="{{formData.images}}" wx:key="index" bindtap="onImageTap" data-index="{{index}}">
+            <view class="upload-image-item {{dragIndex === index ? 'dragging' : ''}} {{dragOverIndex === index ? 'drag-over' : ''}}" 
+                  wx:for="{{formData.images}}" wx:key="index" 
+                  bindtap="onImageTap" data-index="{{index}}"
+                  bindlongpress="onImageLongPress" data-index="{{index}}"
+                  bindtouchmove="onImageTouchMove" data-index="{{index}}"
+                  bindtouchend="onImageTouchEnd" data-index="{{index}}">
               <image src="{{item}}" mode="aspectFill" />
               <view class="upload-image-badge" wx:if="{{index === 0}}">
                 <text>封面</text>
               </view>
-              <view class="upload-image-delete" catchtap="onDeleteImage" data-index="{{index}}">×</view>
+              <view class="upload-image-delete" catchtap="onDeleteImage" data-index="{{index}}" wx:if="{{dragIndex === -1}}">×</view>
+              <view class="upload-drag-handle" wx:if="{{dragIndex !== -1}}">
+                <text>⋮⋮</text>
+              </view>
             </view>
             <view class="upload-add-btn" bindtap="onUploadImages" wx:if="{{formData.images.length < 9}}">
               <text>+ 添加图片</text>
             </view>
           </view>
-          <text class="upload-hint" wx:if="{{formData.images.length > 0}}">点击第一张图片可设为封面</text>
+          <text class="upload-hint" wx:if="{{formData.images.length > 0}}">长按拖动排序，点击第一张设为封面</text>
         </view>
       </view>
     </scroll-view>

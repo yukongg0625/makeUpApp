@@ -18,6 +18,8 @@ Page({
     editId: null,
     showSubcategoryPicker: false,
     hasChanges: false,
+    dragIndex: -1,
+    dragOverIndex: -1,
     formData: {
       categoryId: '',
       categoryName: '',
@@ -761,6 +763,78 @@ Page({
     wx.showToast({ title: '已设为封面', icon: 'success' })
   },
 
+  // === 拖拽排序相关方法 ===
+  onImageLongPress: function(e) {
+    const index = e.currentTarget.dataset.index
+    this.setData({
+      dragIndex: index,
+      dragOverIndex: index
+    })
+    wx.vibrateShort()
+  },
+
+  onImageTouchMove: function(e) {
+    if (this.data.dragIndex === -1) return
+
+    const touches = e.touches[0]
+    const query = wx.createSelectorQuery()
+    query.selectAll('.upload-image-item').boundingClientRect()
+    query.exec((res) => {
+      if (!res || !res[0] || res[0].length === 0) return
+
+      const rects = res[0]
+      let newIndex = -1
+
+      for (let i = 0; i < rects.length; i++) {
+        const rect = rects[i]
+        if (
+          touches.pageX >= rect.left &&
+          touches.pageX <= rect.right &&
+          touches.pageY >= rect.top &&
+          touches.pageY <= rect.bottom
+        ) {
+          newIndex = i
+          break
+        }
+      }
+
+      if (newIndex !== -1 && newIndex !== this.data.dragOverIndex) {
+        this.setData({ dragOverIndex: newIndex })
+      }
+    })
+  },
+
+  onImageTouchEnd: function(e) {
+    if (this.data.dragIndex === -1) return
+
+    const fromIndex = this.data.dragIndex
+    const toIndex = this.data.dragOverIndex
+
+    if (fromIndex !== toIndex && toIndex !== -1) {
+      const images = [...this.data.formData.images]
+      const imageFileIds = [...this.data.formData.imageFileIds]
+
+      const movedImage = images.splice(fromIndex, 1)[0]
+      const movedFileId = imageFileIds.splice(fromIndex, 1)[0]
+
+      images.splice(toIndex, 0, movedImage)
+      imageFileIds.splice(toIndex, 0, movedFileId)
+
+      this.setData({
+        'formData.images': images,
+        'formData.imageFileIds': imageFileIds,
+        hasChanges: true
+      })
+
+      wx.showToast({ title: '排序已更新', icon: 'success' })
+    }
+
+    this.setData({
+      dragIndex: -1,
+      dragOverIndex: -1
+    })
+  },
+
   uploadImage: function (filePath, type) {
     wx.showLoading({ title: '上传中...' })
     
@@ -1036,6 +1110,8 @@ Page({
       showModal: false,
       editMode: false,
       editId: null,
+      dragIndex: -1,
+      dragOverIndex: -1,
       formData: {
         categoryId: '',
         categoryName: '',
