@@ -20,7 +20,7 @@ Page({
     showContactModal: false,
     contactMessage: '',
     showImageSavedTip: false,
-    middleTabText: '美丽瞬间',
+    middleTabText: '信任定格',
     middleTabUrl: ''
   },
 
@@ -122,7 +122,7 @@ Page({
       })
     } else {
       this.setData({
-        middleTabText: '美丽瞬间',
+        middleTabText: '',
         middleTabUrl: ''
       })
     }
