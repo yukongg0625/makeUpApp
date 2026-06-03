@@ -6,7 +6,7 @@
     </view>
 
     <view class="qrcode-section" wx:if="{{contactInfo.qrcodeUrl}}">
-      <text class="qrcode-label">扫码联系我</text>
+      <text class="qrcode-label">点击二维码添加好友</text>
       <image class="qrcode-image" src="{{contactInfo.qrcodeUrl}}" mode="widthFix" bindtap="previewQrcode" />
     </view>
 
