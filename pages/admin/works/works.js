@@ -121,6 +121,9 @@ Page({
     
     if (Object.keys(conditions).length > 0) {
       query = query.where(conditions)
+    } else {
+      // 无筛选条件时，添加 enabled 字段过滤避免扫全表
+      query = query.where({ enabled: true })
     }
     
     query.orderBy('order', 'asc')
@@ -732,6 +735,8 @@ Page({
     this.setData({
       'formData.images': images,
       'formData.imageFileIds': imageFileIds,
+      'formData.coverFileId': imageFileIds[0] || '',
+      'formData.coverUrl': images[0] || '',
       hasChanges: true
     })
   },
@@ -757,6 +762,7 @@ Page({
       'formData.images': images,
       'formData.imageFileIds': imageFileIds,
       'formData.coverFileId': imageFileIds[0],
+      'formData.coverUrl': images[0],
       hasChanges: true
     })
     
@@ -823,6 +829,8 @@ Page({
       this.setData({
         'formData.images': images,
         'formData.imageFileIds': imageFileIds,
+        'formData.coverFileId': imageFileIds[0] || '',
+        'formData.coverUrl': images[0] || '',
         hasChanges: true
       })
 
@@ -967,6 +975,9 @@ Page({
         } else if (!isFeatured && oldIsFeatured) {
           // 移出精华
           this.removeFeaturedRecord(this.data.editId)
+        } else if (isFeatured && oldIsFeatured) {
+          // 已是精华，更新 featured 集合中的 images 和 coverImage
+          this.updateFeaturedRecord(this.data.editId, data)
         } else {
           wx.hideLoading()
           wx.showToast({ title: '保存成功', icon: 'success' })
@@ -1069,6 +1080,47 @@ Page({
           wx.hideLoading()
           wx.showToast({ title: '保存成功，但同步精华失败', icon: 'none' })
           console.error('删除精华记录失败:', err)
+          this.onCloseModal()
+          this.loadCurrentFilteredWorks()
+        })
+      } else {
+        wx.hideLoading()
+        wx.showToast({ title: '保存成功', icon: 'success' })
+        this.onCloseModal()
+        this.loadCurrentFilteredWorks()
+      }
+    }).catch(err => {
+      wx.hideLoading()
+      wx.showToast({ title: '保存成功', icon: 'success' })
+      this.onCloseModal()
+      this.loadCurrentFilteredWorks()
+    })
+  },
+
+  // 更新精华记录（用于已为精华的作品修改图片顺序等）
+  updateFeaturedRecord: function(workId, workData) {
+    const db = wx.cloud.database()
+    db.collection('featured').where({ workId: workId }).get().then(res => {
+      if (res.data.length > 0) {
+        const featuredId = res.data[0]._id
+        db.collection('featured').doc(featuredId).update({
+          data: {
+            coverImage: workData.coverImage,
+            images: workData.images,
+            title: workData.title,
+            usageType: workData.usageType,
+            description: workData.description,
+            order: workData.order
+          }
+        }).then(() => {
+          wx.hideLoading()
+          wx.showToast({ title: '保存成功', icon: 'success' })
+          this.onCloseModal()
+          this.loadCurrentFilteredWorks()
+        }).catch(err => {
+          wx.hideLoading()
+          wx.showToast({ title: '保存成功，但同步精华失败', icon: 'none' })
+          console.error('更新精华记录失败:', err)
           this.onCloseModal()
           this.loadCurrentFilteredWorks()
         })
