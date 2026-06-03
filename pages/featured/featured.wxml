@@ -38,8 +38,7 @@
   
   <!-- 空状态 -->
   <view class="empty-state" wx:if="{{!loading && featuredWorks.length === 0}}">
-    <image src="/images/empty.png" mode="aspectFit" />
-    <text>暂无精选作品</text>
+    <text class="empty-text">暂无精选作品</text>
   </view>
 
   <!-- 自定义底部导航 -->

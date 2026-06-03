@@ -18,12 +18,14 @@ Page({
   },
 
   onShow: function () {
-    wx.showShareMenu({
-      withShareTicket: false,
-      menus: ['shareAppMessage']
-    }).catch(err => {
+    try {
+      wx.showShareMenu({
+        withShareTicket: false,
+        menus: ['shareAppMessage']
+      })
+    } catch (err) {
       console.warn('开启分享菜单失败:', err)
-    })
+    }
     this.checkAdminStatus()
     this.loadContactInfo()
     this.updateTabBar()

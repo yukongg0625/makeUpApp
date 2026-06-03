@@ -6,13 +6,25 @@ const CACHE_KEY = 'cloud_img_url_cache'
 const CACHE_TTL = 50 * 60 * 1000 // 50分钟
 
 /**
- * 从缓存获取URL
+ * 从缓存获取URL（带过期验证）
  */
 function getCachedUrl(fileId) {
   try {
     const cache = wx.getStorageSync(CACHE_KEY) || {}
     const entry = cache[fileId]
     if (entry && entry.url && Date.now() - entry.timestamp < CACHE_TTL) {
+      // 额外验证：如果 URL 中包含 sign 和 t 参数，检查 t 是否已过期
+      const url = entry.url
+      const tMatch = url.match(/[?&]t=(\d+)/)
+      if (tMatch) {
+        const expiryTime = parseInt(tMatch[1]) * 1000
+        if (Date.now() > expiryTime) {
+          // CDN URL 已过期，清除缓存
+          delete cache[fileId]
+          wx.setStorageSync(CACHE_KEY, cache)
+          return null
+        }
+      }
       return entry.url
     }
     // 过期则清除

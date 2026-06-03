@@ -29,12 +29,14 @@ Page({
   },
 
   onShow: function () {
-    wx.showShareMenu({
-      withShareTicket: false,
-      menus: ['shareAppMessage']
-    }).catch(err => {
+    try {
+      wx.showShareMenu({
+        withShareTicket: false,
+        menus: ['shareAppMessage']
+      })
+    } catch (err) {
       console.warn('开启分享菜单失败:', err)
-    })
+    }
     if (this.data._categoryId) {
       this.reloadCategoryData(this.data._categoryId, this.data._categoryName, this.data._subcategoryId)
     }
