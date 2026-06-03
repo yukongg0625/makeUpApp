@@ -1,9 +1,9 @@
 // 云存储工具函数
 const config = require('../config.js')
 
-// 缓存配置：临时URL默认缓存50分钟（云存储临时URL通常1小时过期）
+// 缓存配置：从 config.js 读取，默认50分钟
 const CACHE_KEY = 'cloud_img_url_cache'
-const CACHE_TTL = 50 * 60 * 1000 // 50分钟
+const CACHE_TTL = config.storage.urlCacheTTL || 50 * 60 * 1000
 
 /**
  * 从缓存获取URL（带过期验证）
