@@ -1,7 +1,6 @@
 {
   "usingComponents": {},
   "enablePullDownRefresh": true,
-  "enableShareAppMessage": true,
   "navigationBarTitleText": "造型师作品集",
   "navigationStyle": "custom"
 }

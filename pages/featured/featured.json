@@ -1,6 +1,5 @@
 {
   "usingComponents": {},
   "enablePullDownRefresh": true,
-  "enableShareAppMessage": true,
   "navigationBarTitleText": "精选作品集"
 }

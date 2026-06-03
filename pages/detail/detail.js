@@ -301,7 +301,7 @@ Page({
     return {
       title: this.data.workInfo.title,
       path: `/pages/detail/detail?id=${this.data.workId}`,
-      imageUrl: this.data.images[0]
+      imageUrl: this.data.images.length > 0 ? this.data.images[0] : ''
     }
   },
 
