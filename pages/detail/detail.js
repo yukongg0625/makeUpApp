@@ -150,13 +150,15 @@ Page({
     return cloudStorage.getTempFileURL(cloudFileIds).then(urlMap => {
       return fileIds.map(id => {
         if (id && id.startsWith('cloud://')) {
-          return urlMap[id] || id
+          return urlMap[id] || ''  // 转换失败时返回空字符串
         }
         return id
       })
     }).catch(err => {
       console.error('转换云存储 URL 失败:', err)
-      return fileIds
+      return fileIds.map(id => {
+        return id && id.startsWith('cloud://') ? '' : id  // 整体失败时 cloud:// 也转空
+      })
     })
   },
 
