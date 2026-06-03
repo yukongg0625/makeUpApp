@@ -31,26 +31,32 @@ async function getTempFileURL(fileList) {
     return { success: true, fileList: [] }
   }
 
-  try {
-    const result = await cloud.getTempFileURL({
-      fileList: validFileIds
-    })
+  // 分批处理，每次最多50个
+  const BATCH_SIZE = 50
+  const urlMap = {}
+  const allFileList = []
 
-    const urlMap = {}
-    for (const item of result.fileList || []) {
-      if (item.status === 0) {
-        urlMap[item.fileID] = item.tempFileURL
+  for (let i = 0; i < validFileIds.length; i += BATCH_SIZE) {
+    const batch = validFileIds.slice(i, i + BATCH_SIZE)
+    try {
+      const result = await cloud.getTempFileURL({
+        fileList: batch
+      })
+      for (const item of result.fileList || []) {
+        allFileList.push(item)
+        if (item.status === 0) {
+          urlMap[item.fileID] = item.tempFileURL
+        }
       }
+    } catch (err) {
+      console.error('批次获取临时URL失败:', err)
     }
+  }
 
-    return {
-      success: true,
-      fileList: result.fileList,
-      urlMap: urlMap
-    }
-  } catch (err) {
-    console.error('获取临时URL失败:', err)
-    return { success: false, message: err.message }
+  return {
+    success: true,
+    fileList: allFileList,
+    urlMap: urlMap
   }
 }
 

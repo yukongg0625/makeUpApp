@@ -118,25 +118,32 @@ function fetchTempFileURL(fileIds) {
 }
 
 /**
- * 降级方案：直接使用前端API获取临时URL
+ * 降级方案：直接使用前端API获取临时URL（分批处理，每次最多50个）
  */
 function fallbackGetTempFileURL(fileIds) {
-  return wx.cloud.getTempFileURL({
-    fileList: fileIds
-  }).then(res => {
-    const urlMap = {}
-    res.fileList.forEach(file => {
-      if (file.status === 0) {
-        urlMap[file.fileID] = file.tempFileURL
-      } else {
-        console.warn('文件获取临时URL失败:', file.fileID, file.status, file.errorMessage)
-      }
+  const BATCH_SIZE = 50
+  const urlMap = {}
+
+  const promises = []
+  for (let i = 0; i < fileIds.length; i += BATCH_SIZE) {
+    const batch = fileIds.slice(i, i + BATCH_SIZE)
+    const p = wx.cloud.getTempFileURL({
+      fileList: batch
+    }).then(res => {
+      res.fileList.forEach(file => {
+        if (file.status === 0) {
+          urlMap[file.fileID] = file.tempFileURL
+        } else {
+          console.warn('文件获取临时URL失败:', file.fileID, file.status, file.errorMessage)
+        }
+      })
+    }).catch(err => {
+      console.error('批次获取临时URL失败:', err)
     })
-    return urlMap
-  }).catch(err => {
-    console.error('前端获取临时URL也失败:', err)
-    return {}
-  })
+    promises.push(p)
+  }
+
+  return Promise.all(promises).then(() => urlMap)
 }
 
 /**

@@ -25,12 +25,14 @@ Page({
   },
 
   onLoad: function (options) {
-    wx.showShareMenu({
-      withShareTicket: false,
-      menus: ['shareAppMessage']
-    }).catch(err => {
+    try {
+      wx.showShareMenu({
+        withShareTicket: false,
+        menus: ['shareAppMessage']
+      })
+    } catch (err) {
       console.warn('开启分享菜单失败:', err)
-    })
+    }
     if (options.id) {
       this.setData({ workId: options.id })
       this.loadWorkDetail(options.id)
