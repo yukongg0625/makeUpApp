@@ -20,6 +20,7 @@ Page({
     hasChanges: false,
     dragIndex: -1,
     dragOverIndex: -1,
+    dragRects: [],
     formData: {
       categoryId: '',
       categoryName: '',
@@ -772,42 +773,45 @@ Page({
   // === 拖拽排序相关方法 ===
   onImageLongPress: function(e) {
     const index = e.currentTarget.dataset.index
-    this.setData({
-      dragIndex: index,
-      dragOverIndex: index
+    // 缓存所有图片的位置信息，避免 touchmove 时重复查询
+    const query = wx.createSelectorQuery()
+    query.selectAll('.upload-image-item').boundingClientRect()
+    query.exec((res) => {
+      if (res && res[0] && res[0].length > 0) {
+        this.setData({
+          dragIndex: index,
+          dragOverIndex: index,
+          dragRects: res[0]
+        })
+        wx.vibrateShort()
+      }
     })
-    wx.vibrateShort()
   },
 
   onImageTouchMove: function(e) {
     if (this.data.dragIndex === -1) return
 
     const touches = e.touches[0]
-    const query = wx.createSelectorQuery()
-    query.selectAll('.upload-image-item').boundingClientRect()
-    query.exec((res) => {
-      if (!res || !res[0] || res[0].length === 0) return
+    const rects = this.data.dragRects
+    if (!rects || rects.length === 0) return
 
-      const rects = res[0]
-      let newIndex = -1
-
-      for (let i = 0; i < rects.length; i++) {
-        const rect = rects[i]
-        if (
-          touches.pageX >= rect.left &&
-          touches.pageX <= rect.right &&
-          touches.pageY >= rect.top &&
-          touches.pageY <= rect.bottom
-        ) {
-          newIndex = i
-          break
-        }
+    let newIndex = -1
+    for (let i = 0; i < rects.length; i++) {
+      const rect = rects[i]
+      if (
+        touches.pageX >= rect.left &&
+        touches.pageX <= rect.right &&
+        touches.pageY >= rect.top &&
+        touches.pageY <= rect.bottom
+      ) {
+        newIndex = i
+        break
       }
+    }
 
-      if (newIndex !== -1 && newIndex !== this.data.dragOverIndex) {
-        this.setData({ dragOverIndex: newIndex })
-      }
-    })
+    if (newIndex !== -1 && newIndex !== this.data.dragOverIndex) {
+      this.setData({ dragOverIndex: newIndex })
+    }
   },
 
   onImageTouchEnd: function(e) {
@@ -837,9 +841,11 @@ Page({
       wx.showToast({ title: '排序已更新', icon: 'success' })
     }
 
+    // 清理拖拽状态
     this.setData({
       dragIndex: -1,
-      dragOverIndex: -1
+      dragOverIndex: -1,
+      dragRects: []
     })
   },
 
@@ -1164,6 +1170,7 @@ Page({
       editId: null,
       dragIndex: -1,
       dragOverIndex: -1,
+      dragRects: [],
       formData: {
         categoryId: '',
         categoryName: '',
