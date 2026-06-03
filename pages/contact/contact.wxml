@@ -7,7 +7,7 @@
 
     <view class="qrcode-section" wx:if="{{contactInfo.qrcodeUrl}}">
       <text class="qrcode-label">扫码联系我</text>
-      <image class="qrcode-image" src="{{contactInfo.qrcodeUrl}}" mode="widthFix" />
+      <image class="qrcode-image" src="{{contactInfo.qrcodeUrl}}" mode="widthFix" bindtap="previewQrcode" />
     </view>
 
     <view class="empty-qrcode" wx:else>

@@ -116,6 +116,13 @@ Page({
     })
   },
 
+  previewQrcode: function() {
+    wx.previewImage({
+      current: this.data.contactInfo.qrcodeUrl,
+      urls: [this.data.contactInfo.qrcodeUrl]
+    })
+  },
+
   goToAdmin: function () {
     wx.navigateTo({
       url: '/pages/admin/admin'
