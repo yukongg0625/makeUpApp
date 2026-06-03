@@ -1224,6 +1224,9 @@ Page({
     })
   },
 
+  // 阻止弹窗遮罩层触摸事件穿透到底层页面
+  preventTouchMove: function () {},
+
   onToggleHiddenInForm: function () {
     const currentValue = this.data.formData.hidden
     this.setData({

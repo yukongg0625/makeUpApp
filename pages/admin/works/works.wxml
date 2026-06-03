@@ -94,7 +94,7 @@
 </view>
 
 <!-- 编辑图片弹窗 -->
-<view class="modal" wx:if="{{showImageModal}}" bindtap="onCloseImageModal">
+<view class="modal" wx:if="{{showImageModal}}" catchtouchmove="preventTouchMove" bindtap="onCloseImageModal">
   <view class="modal-content" catchtap="onCatchTap">
     <view class="modal-header">
       <text class="modal-title">编辑图片</text>
@@ -139,7 +139,7 @@
 </view>
 
 <!-- 编辑作品弹窗 -->
-<view class="modal" wx:if="{{showModal}}">
+<view class="modal" wx:if="{{showModal}}" catchtouchmove="preventTouchMove">
   <view class="modal-content">
     <view class="modal-header">
       <text class="modal-title">{{editMode ? '编辑作品' : '添加作品'}}</text>
