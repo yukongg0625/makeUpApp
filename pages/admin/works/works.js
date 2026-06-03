@@ -20,7 +20,13 @@ Page({
     hasChanges: false,
     dragIndex: -1,
     dragOverIndex: -1,
-    dragRects: [],
+    dragStartY: 0,
+    dragStartX: 0,
+    dragContainerTop: 0,
+    dragContainerLeft: 0,
+    dragItemWidth: 0,
+    dragItemHeight: 0,
+    dragTotalCols: 3,
     formData: {
       categoryId: '',
       categoryName: '',
@@ -773,15 +779,27 @@ Page({
   // === 拖拽排序相关方法 ===
   onImageLongPress: function(e) {
     const index = e.currentTarget.dataset.index
-    // 缓存所有图片的位置信息，避免 touchmove 时重复查询
+    // 缓存容器和图片尺寸信息，用于计算目标位置
     const query = wx.createSelectorQuery()
+    query.select('.upload-images-grid').boundingClientRect()
     query.selectAll('.upload-image-item').boundingClientRect()
     query.exec((res) => {
-      if (res && res[0] && res[0].length > 0) {
+      if (res && res[0] && res[1] && res[1].length > 0) {
+        const containerRect = res[0]
+        const itemRects = res[1]
+        const firstItem = itemRects[0]
+        const cols = 3 // 固定3列
+        
         this.setData({
           dragIndex: index,
           dragOverIndex: index,
-          dragRects: res[0]
+          dragStartY: firstItem.top - containerRect.top,
+          dragStartX: firstItem.left - containerRect.left,
+          dragContainerTop: containerRect.top,
+          dragContainerLeft: containerRect.left,
+          dragItemWidth: firstItem.width,
+          dragItemHeight: firstItem.height,
+          dragTotalCols: cols
         })
         wx.vibrateShort()
       }
@@ -792,24 +810,25 @@ Page({
     if (this.data.dragIndex === -1) return
 
     const touches = e.touches[0]
-    const rects = this.data.dragRects
-    if (!rects || rects.length === 0) return
+    const { dragContainerTop, dragContainerLeft, dragItemWidth, dragItemHeight, dragTotalCols } = this.data
 
-    let newIndex = -1
-    for (let i = 0; i < rects.length; i++) {
-      const rect = rects[i]
-      if (
-        touches.pageX >= rect.left &&
-        touches.pageX <= rect.right &&
-        touches.pageY >= rect.top &&
-        touches.pageY <= rect.bottom
-      ) {
-        newIndex = i
-        break
-      }
-    }
+    // 计算手指相对于容器的偏移
+    const offsetY = touches.pageY - dragContainerTop
+    const offsetX = touches.pageX - dragContainerLeft
 
-    if (newIndex !== -1 && newIndex !== this.data.dragOverIndex) {
+    // 计算目标行和列
+    const row = Math.floor(offsetY / dragItemHeight)
+    const col = Math.floor(offsetX / dragItemWidth)
+    
+    // 计算目标索引
+    let newIndex = row * dragTotalCols + col
+    
+    // 边界处理
+    const totalItems = this.data.formData.images.length
+    if (newIndex < 0) newIndex = 0
+    if (newIndex >= totalItems) newIndex = totalItems - 1
+
+    if (newIndex !== this.data.dragOverIndex) {
       this.setData({ dragOverIndex: newIndex })
     }
   },
@@ -845,7 +864,13 @@ Page({
     this.setData({
       dragIndex: -1,
       dragOverIndex: -1,
-      dragRects: []
+      dragStartY: 0,
+      dragStartX: 0,
+      dragContainerTop: 0,
+      dragContainerLeft: 0,
+      dragItemWidth: 0,
+      dragItemHeight: 0,
+      dragTotalCols: 3
     })
   },
 
@@ -1170,7 +1195,13 @@ Page({
       editId: null,
       dragIndex: -1,
       dragOverIndex: -1,
-      dragRects: [],
+      dragStartY: 0,
+      dragStartX: 0,
+      dragContainerTop: 0,
+      dragContainerLeft: 0,
+      dragItemWidth: 0,
+      dragItemHeight: 0,
+      dragTotalCols: 3,
       formData: {
         categoryId: '',
         categoryName: '',
