@@ -26,14 +26,11 @@ Page({
   },
 
   enableShare: function () {
-    try {
-      wx.showShareMenu({
-        withShareTicket: false,
-        menus: ['shareAppMessage']
-      })
-    } catch (err) {
-      console.warn('开启分享菜单失败:', err)
-    }
+    wx.showShareMenu({
+      withShareTicket: false,
+      menus: ['shareAppMessage'],
+      fail: (err) => console.warn('开启分享菜单失败:', err)
+    })
   },
 
   updateTabBar() {
