@@ -25,7 +25,7 @@ exports.main = async (event, context) => {
 
     console.log('旧名称:', oldName)
 
-    const hiddenBool = hidden === true || hidden === 'true'
+    const hiddenBool = Boolean(hidden)
 
     console.log('hidden (原始):', hidden, '类型:', typeof hidden)
     console.log('hidden (转换后):', hiddenBool)

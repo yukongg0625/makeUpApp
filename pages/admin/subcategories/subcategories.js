@@ -52,21 +52,21 @@ Page({
     this.setData({ loading: true })
 
     const db = wx.cloud.database()
-    const _ = db.command
     let query = db.collection('subcategories')
 
-    const conditions = {}
     if (categoryId) {
-      conditions.categoryId = categoryId
-    }
-
-    if (Object.keys(conditions).length > 0) {
-      query = query.where(conditions)
+      query = query.where({ categoryId: categoryId })
+      console.log('loadSubcategories: 按影集筛选，categoryId =', categoryId)
+    } else {
+      console.log('loadSubcategories: 无筛选条件，查询所有子集（包括隐藏的）')
     }
 
     query.orderBy('order', 'asc')
       .get()
       .then(res => {
+        console.log('loadSubcategories: 查询结果数量 =', res.data.length)
+        console.log('loadSubcategories: 子集数据 =', res.data)
+        
         this.setData({
           subcategories: res.data,
           loading: false
