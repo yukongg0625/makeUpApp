@@ -26,7 +26,7 @@ Page({
   },
 
   onShow: function () {
-    this.loadSubcategories()
+    this.reloadSubcategories()
   },
 
   loadCategories: function () {
@@ -76,6 +76,14 @@ Page({
         console.error('加载子类失败:', err)
         this.setData({ loading: false })
       })
+  },
+
+  // 重新加载子集，保持当前筛选状态
+  reloadSubcategories: function () {
+    const currentCategoryId = this.data.selectedCategoryIndex === -1 
+      ? null 
+      : this.data.categories[this.data.selectedCategoryIndex]?._id
+    this.loadSubcategories(currentCategoryId)
   },
 
   onCategoryChange: function (e) {
@@ -166,7 +174,7 @@ Page({
       wx.hideLoading()
       if (res.result && res.result.success) {
         wx.showToast({ title: '删除成功', icon: 'success' })
-        this.loadSubcategories()
+        this.reloadSubcategories()
       } else {
         wx.showToast({ title: res.result.message || '删除失败', icon: 'error' })
       }
@@ -267,7 +275,7 @@ Page({
         if (res.result && res.result.success) {
           wx.showToast({ title: '保存成功', icon: 'success' })
           this.onCloseModal()
-          this.loadSubcategories()
+          this.reloadSubcategories()
         } else {
           wx.hideLoading()
           wx.showToast({ title: res.result.message || '更新失败', icon: 'error' })
@@ -291,7 +299,7 @@ Page({
         wx.hideLoading()
         wx.showToast({ title: '添加成功', icon: 'success' })
         this.onCloseModal()
-        this.loadSubcategories()
+        this.reloadSubcategories()
       }).catch(err => {
         wx.hideLoading()
         wx.showToast({ title: '添加失败', icon: 'error' })
